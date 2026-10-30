@@ -1,4 +1,4 @@
-# OrderFlow v2 — Auto Body Supply: Page-to-Page Prototype (Simulated Live Env)
+# OrderFlow v3 — Auto Body Supply: One Page Per Order, Submit → Confirm Flow (Simulated Live Env)
 
 **Live:** https://sun-wukhan.github.io/order-whatsapp-prototype/
 
@@ -18,6 +18,15 @@ Use the top nav / stepper — each step is its own page (hash routes, browser Ba
 | 6. Track | `#/track` | Customer order-status timeline |
 | — Dashboard | `#/dashboard` | Business view: KPIs, all orders (seeded + new), inventory table |
 | — Environment | `#/settings` | Where real keys plug in — see below |
+| — Order Page | `#/order/<orderId>` | **One page per order** — see below |
+
+## One page per order + submit/confirm navigation (v3)
+
+- Every order gets its own page: `#/order/ORD-2026-xxxx` (e.g. `#/order/ORD-2026-1031` for a seeded order). The Dashboard's “📄 Order Page →” opens it.
+- That page holds everything for that single order: KPIs, items, history, and a **Remediate / Edit** form (contact, WhatsApp №, address, fulfilment, status, PO, notes) plus quantity +/- and add-item controls.
+- **Save Changes** simulates `PATCH /api/v1/orders/:id`, recalculates totals + the invoice, records a `REMEDIATED` history entry, and pushes an amended-order WhatsApp message (mock) — WhatsApp, Invoice, Tracking and Dashboard all update.
+- Linear flow buttons are named for what they do: **Submit** on Shop → Checkout, **Submit Order** on Checkout → Processing, **Confirm** on Processing → WhatsApp, **Confirm** on WhatsApp → Invoice, **Confirm Invoice** → Tracking.
+- Go back and forth freely: Back buttons on every page, browser Back/Forward buttons in the header, a clickable stepper, and jump buttons on the Order Page to that order's WhatsApp / Invoice / Tracking pages. State is persisted, so nothing is lost moving between pages.
 
 ## Simulated real environment
 

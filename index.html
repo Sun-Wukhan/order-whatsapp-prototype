@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>OrderFlow v2 — Auto Body Supply | Page-to-Page Prototype (Simulated Live Env)</title>
+<title>OrderFlow v3 — Auto Body Supply | One Page Per Order, Submit → Confirm Flow</title>
 <meta name="description" content="Page-to-page prototype simulating a real environment: shop → checkout → API processing → WhatsApp → invoice → tracking. Dummy data, mocked keys."/>
 <style>
 :root{--green:#25D366;--dark:#075E54;--teal:#128C7E;--bg:#f6f7f6;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--amber:#fef3c7;--code:#0b1220}
@@ -67,7 +67,7 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
 <body>
 <header><div class="wrap">
   <div class="top">
-    <div class="brand"><div class="logo">↗</div><div><h1>OrderFlow <span style="color:var(--muted);font-weight:500">v2 — Simulated Live</span></h1><p>Toronto Auto Body Supply • Scarborough, ON • Page-to-page prototype</p></div></div>
+    <div class="brand"><div class="logo">↗</div><div><h1>OrderFlow <span style="color:var(--muted);font-weight:500">v3 — One Page Per Order</span></h1><p>Toronto Auto Body Supply • Scarborough, ON • Page-to-page prototype</p></div></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge">ENV: <b id="envBadge">SANDBOX</b></span><span class="badge">WhatsApp: <b>MOCK API</b></span><span class="badge">Keys: <b>Not plugged in</b></span></div>
   </div>
   <nav class="main" id="mainNav">
@@ -79,6 +79,8 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
     <a href="#/track" data-nav="track">📦 Track Order</a>
     <a href="#/dashboard" data-nav="dashboard">🏪 Business Dashboard</a>
     <a href="#/settings" data-nav="settings">🔑 Environment / Keys</a>
+    <a href="#/order" data-nav="order">📄 Current Order Page</a>
+    <span style="margin-left:auto;display:flex;gap:6px"><button class="tab" onclick="history.back()">← Back</button><button class="tab" onclick="history.forward()">Forward →</button></span>
   </nav>
 </div></header>
 
@@ -99,7 +101,7 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
     <div class="grid">
       <div class="card"><h3>Catalogue — Auto Body Supplies (dummy data)</h3><div class="products" id="products"></div></div>
       <aside class="card"><h3>Cart</h3><div id="cartShop"></div><div class="totals" id="totalsShop"></div>
-        <div class="btnrow"><button class="btn green" onclick="go('#/checkout')">Continue to Checkout →</button></div>
+        <div class="btnrow"><button class="btn green" onclick="go('#/checkout')">Submit — Next Page: Checkout →</button></div>
         <p class="muted">Simulated DB: <span class="mono" id="dbHint1"></span></p></aside>
     </div>
   </section>
@@ -118,7 +120,7 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
         <label>Purchase Order № (optional)</label><input id="poNum" value="MC-1042"/>
       </div>
       <aside class="card"><h3>Order review</h3><div id="cartCheckout"></div><div class="totals" id="totalsCheckout"></div>
-        <div class="btnrow"><button class="btn light" onclick="go('#/shop')">← Back to Shop</button><button class="btn green" id="placeBtn" onclick="placeOrder()">Place Order →</button></div>
+        <div class="btnrow"><button class="btn light" onclick="go('#/shop')">← Back to Shop</button><button class="btn green" id="placeBtn" onclick="placeOrder()">Submit Order — Next Page: Processing →</button></div>
         <p class="muted">Next page simulates: <span class="mono">POST /api/orders</span>, inventory reserve, WhatsApp send, webhook, invoice create.</p></aside>
     </div>
   </section>
@@ -129,7 +131,7 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
     <div class="grid">
       <div>
         <div class="card"><h3>Pipeline</h3><div class="timeline" id="pipeline"></div>
-          <div class="btnrow"><button class="btn light" onclick="go('#/checkout')">← Checkout</button><span><button class="btn light" onclick="runProcessing(true)">↻ Replay simulation</button> <button class="btn green" id="toWhats" disabled onclick="go('#/whatsapp')">Continue to WhatsApp →</button></span></div>
+          <div class="btnrow"><button class="btn light" onclick="go('#/checkout')">← Checkout</button><span><button class="btn light" onclick="runProcessing(true)">↻ Replay simulation</button> <button class="btn green" id="toWhats" disabled onclick="go('#/whatsapp')">Confirm — Next Page: WhatsApp →</button></span></div>
         </div>
         <div class="card"><h3>Last request / response</h3><pre id="payloadBox">Waiting to run…</pre></div>
       </div>
@@ -156,7 +158,7 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
       <div class="card"><h3>WhatsApp provider — simulated</h3>
         <div class="lock"><strong>🔒 Keys not plugged in</strong><br/>Provider: Meta WhatsApp Business Platform (mock)<br/><span class="mono">POST /v21.0/{phone_number_id}/messages</span><br/>Template: <span class="mono">order_confirmation_v1</span> • Language: en_CA<br/>Webhook events received: <span class="mono">sent → delivered → read</span> (simulated)</div>
         <h3 style="margin-top:16px">Message records (simulated DB)</h3><div id="msgRecords" class="mono muted"></div>
-        <div class="btnrow"><button class="btn light" onclick="go('#/processing')">← Processing</button><button class="btn green" onclick="go('#/invoice')">Continue to Invoice →</button></div>
+        <div class="btnrow"><button class="btn light" onclick="go('#/processing')">← Back: Processing</button><button class="btn green" onclick="confirmWhatsApp()">Confirm — Next Page: Invoice →</button></div>
       </div>
     </div>
   </section>
@@ -173,7 +175,7 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
       </div>
       <div id="invoiceBox"></div>
       <div class="okbox no-print" style="margin-top:12px" id="deliveryBox"></div>
-      <div class="btnrow no-print"><button class="btn light" onclick="go('#/whatsapp')">← WhatsApp</button><button class="btn green" onclick="go('#/track')">Track Order →</button></div>
+      <div class="btnrow no-print"><button class="btn light" onclick="go('#/whatsapp')">← Back: WhatsApp</button><span><button class="btn light" onclick="goOrderPage()">📄 Review This Order (its own page)</button> <button class="btn green" onclick="go('#/track')">Confirm Invoice — Next Page: Tracking →</button></span></div>
     </div>
   </section>
 
@@ -183,13 +185,20 @@ footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
     <div class="grid">
       <div class="card"><h3>Status timeline</h3><div class="timeline" id="trackTimeline"></div></div>
       <div class="card"><h3>Order summary</h3><div id="trackSummary"></div>
-        <div class="btnrow"><button class="btn light" onclick="go('#/invoice')">← Invoice</button><button class="btn green" onclick="resetDemo()">↻ Start a new order</button></div></div>
+        <div class="btnrow"><button class="btn light" onclick="go('#/invoice')">← Back: Invoice</button><span><button class="btn light" onclick="goOrderPage()">📄 Open This Order's Page</button> <button class="btn green" onclick="resetDemo()">↻ Start a new order</button></span></div></div>
     </div>
+  </section>
+
+
+  <!-- ORDER PAGE — one page per order -->
+  <section class="page" id="page-order">
+    <div class="hero"><h2 id="orderPageTitle">Order Page</h2><p>One page for this one order — everything in a single place. Review it, remediate it (fix quantities, customer details, status, notes), save, and the totals + invoice update everywhere. Use Back / the buttons below to go back and forth between this order, its WhatsApp thread, and its invoice.</p></div>
+    <div id="orderPageBody"></div>
   </section>
 
   <!-- DASHBOARD -->
   <section class="page" id="page-dashboard">
-    <div class="hero"><h2>Business Dashboard — Simulated</h2><p>What the supply shop sees. Seeded with dummy historical orders + your new one. Click any order to open its WhatsApp thread and invoice.</p></div>
+    <div class="hero"><h2>Business Dashboard — Simulated</h2><p>What the supply shop sees. Seeded with dummy historical orders + your new one. Each order has its own page — click any order to open that page, review it, remediate it (edit items, customer, status), then jump to its WhatsApp thread or invoice and back.</p></div>
     <div class="kpis" id="kpis"></div>
     <div class="card" style="margin-top:16px"><h3>Orders (simulated DB table: orders)</h3><div style="overflow:auto"><table><thead><tr><th>Invoice</th><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Date</th><th></th></tr></thead><tbody id="ordersTable"></tbody></table></div></div>
     <div class="card"><h3>Inventory (simulated DB table: inventory)</h3><div style="overflow:auto"><table><thead><tr><th>SKU</th><th>Product</th><th>Stock</th><th>Price</th></tr></thead><tbody id="invTable"></tbody></table></div>
@@ -223,7 +232,7 @@ PATCH  /api/v1/orders/:id/status</pre></div>
     </div>
   </section>
 </main>
-<footer class="wrap">OrderFlow v2 • Simulated live environment • Dummy / hard-coded data only • No real WhatsApp, payments, or keys • HST 13% Ontario demo</footer>
+<footer class="wrap">OrderFlow v3 • One page per order • Simulated live environment • Dummy / hard-coded data only • No real WhatsApp, payments, or keys • HST 13% Ontario demo</footer>
 
 <script>
 // ---------- Catalogue + Inventory seed ----------
@@ -325,11 +334,76 @@ function renderDashboard(){
   const db=getDB();
   const revenue=db.orders.reduce((a,o)=>a+o.total,0);
   document.getElementById('kpis').innerHTML=`<div class="kpi"><span class="muted">Orders (simulated)</span><b>${db.orders.length}</b></div><div class="kpi"><span class="muted">Revenue (demo)</span><b>${money(revenue)}</b></div><div class="kpi"><span class="muted">Invoices issued</span><b>${db.invoices.length}</b></div><div class="kpi"><span class="muted">WhatsApp messages</span><b>${db.messages.length}</b></div>`;
-  document.getElementById('ordersTable').innerHTML=db.orders.map(o=>`<tr><td class="mono">${o.invoiceId}</td><td class="mono">${o.orderId}</td><td>${o.name}</td><td><span class="pill">${o.status}</span></td><td><b>${money(o.total)}</b></td><td>${o.date}</td><td><button class="tab" onclick="openOrder('${o.orderId}')">Open →</button></td></tr>`).join('');
+  document.getElementById('ordersTable').innerHTML=db.orders.map(o=>`<tr><td class="mono">${o.invoiceId}</td><td class="mono">${o.orderId}</td><td>${o.name}</td><td><span class="pill">${o.status}</span></td><td><b>${money(o.total)}</b></td><td>${o.date}</td><td><button class="tab" onclick="openOrder('${o.orderId}')">📄 Order Page →</button></td></tr>`).join('');
   document.getElementById('invTable').innerHTML=PRODUCTS.map(p=>`<tr><td class="mono">${p.sku}</td><td>${p.name}</td><td><b>${db.inventory[p.id]}</b></td><td>${money(p.price)}</td></tr>`).join('');
 }
-function openOrder(id){ setCurrent(id); renderAll(); go('#/whatsapp'); }
-function renderAll(){ renderCart(); renderLog(); renderWhatsApp(); renderInvoice(); renderTrack(); renderDashboard(); }
+function openOrder(id){ setCurrent(id); renderAll(); go('#/order/'+encodeURIComponent(id)); }
+function renderAll(){ renderCart(); renderLog(); renderWhatsApp(); renderInvoice(); renderTrack(); renderDashboard(); renderOrderPage(); }
+
+
+// ---------- One page per order: review + remediation ----------
+function recalcOrder(o){ o.sub=o.items.reduce((a,i)=>a+i.price*i.qty,0); o.delivery=o.fulfil==='Delivery'?24.99:0; o.hst=(o.sub+o.delivery)*0.13; o.total=o.sub+o.delivery+o.hst; return o }
+function goOrderPage(){ const o=currentOrder(); if(o) go('#/order/'+encodeURIComponent(o.orderId)); else go('#/dashboard'); }
+function confirmWhatsApp(){ const o=currentOrder(); if(o){ logAPI('POST','/webhooks/whatsapp',200,38,'Customer confirmed on WhatsApp page'); } go('#/invoice'); }
+function renderOrderPage(){
+  const body=document.getElementById('orderPageBody'); if(!body) return;
+  const o=currentOrder();
+  const title=document.getElementById('orderPageTitle');
+  if(!o){ body.innerHTML='<div class="card"><p class="muted">No order selected. Pick one from the Business Dashboard, or place a new order.</p><div class="btnrow"><button class="btn light" onclick="go(\'#/dashboard\')">← Dashboard (all orders)</button><button class="btn green" onclick="go(\'#/shop\')">New Order →</button></div></div>'; if(title) title.textContent='Order Page'; return }
+  if(title) title.textContent='Order Page — '+o.orderId;
+  body.innerHTML=`
+  <div class="kpis" style="margin-bottom:16px">
+    <div class="kpi"><span class="muted">Order</span><b style="font-size:17px">${o.orderId}</b><span class="muted">${o.date}</span></div>
+    <div class="kpi"><span class="muted">Invoice</span><b style="font-size:17px">${o.invoiceId}</b><span class="muted">Customer + Business copies</span></div>
+    <div class="kpi"><span class="muted">Status</span><b style="font-size:17px">${o.status}</b><span class="muted">${o.fulfil} • ${o.pay}</span></div>
+    <div class="kpi"><span class="muted">Total (CAD)</span><b>${money(o.total)}</b><span class="muted">incl. HST ${money(o.hst)}</span></div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="card"><h3>Items — remediate quantities here</h3>
+        ${o.items.map(i=>`<div class="cartline"><div><b>${i.name}</b><div class="muted">${i.sku} • ${money(i.price)} each</div></div><div class="qty"><button onclick="eoChg('${i.id}',-1)">−</button> <b>${i.qty}</b> <button onclick="eoChg('${i.id}',1)">+</button></div><b>${money(i.price*i.qty)}</b></div>`).join('') || '<p class="muted">No items — add one below.</p>'}
+        <div class="row" style="margin-top:12px"><div><label>Add an item</label><select id="eoAddSel">${PRODUCTS.map(pr=>`<option value="${pr.id}">${pr.name} — ${money(pr.price)}</option>`).join('')}</select></div>
+        <div style="display:flex;align-items:end"><button class="btn" style="width:100%" onclick="eoAddItem()">+ Add Item</button></div></div>
+        <div class="totals"><div><span>Subtotal</span><span>${money(o.sub)}</span></div><div><span>Delivery</span><span>${money(o.delivery)}</span></div><div><span>HST (13%)</span><span>${money(o.hst)}</span></div><div class="grand"><span>Total CAD</span><span>${money(o.total)}</span></div></div>
+      </div>
+      <div class="card"><h3>History — every change to this order</h3><div class="timeline">${(o.history||[]).map(h=>`<div class="tl done"><div class="dot">✓</div><div><b>${h[0].replaceAll('_',' ')}</b><div class="muted">${h[1]}</div></div></div>`).join('')}</div></div>
+    </div>
+    <div>
+      <div class="card"><h3>Remediate / Edit this order</h3>
+        <label>Contact name / Shop</label><input id="eo_name" value="${o.name.replaceAll('"','&quot;')}"/>
+        <label>WhatsApp number</label><input id="eo_phone" value="${o.phone}"/>
+        <label>Delivery / pickup address</label><input id="eo_addr" value="${o.addr.replaceAll('"','&quot;')}"/>
+        <div class="row"><div><label>Fulfilment</label><select id="eo_fulfil"><option ${o.fulfil==='Delivery'?'selected':''}>Delivery</option><option ${o.fulfil==='Pickup'?'selected':''}>Pickup</option></select></div>
+        <div><label>Status</label><select id="eo_status">${['PLACED','CONFIRMED','PREPARING','READY','DELIVERED','CANCELLED'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}</select></div></div>
+        <label>PO №</label><input id="eo_po" value="${(o.po||'').replaceAll('"','&quot;')}"/>
+        <label>Notes</label><textarea id="eo_notes" rows="2">${o.notes||''}</textarea>
+        <div class="btnrow"><button class="btn green" onclick="saveRemediation()">💾 Save Changes (updates invoice)</button></div>
+        <p class="muted">Saving simulates <span class="mono">PATCH /api/v1/orders/${o.orderId}</span>, recalculates the invoice, and sends an amended-order WhatsApp message (mock).</p>
+      </div>
+      <div class="card"><h3>Go back and forth</h3>
+        <div style="display:grid;gap:8px">
+          <button class="btn light" onclick="go('#/dashboard')">← Back: All Orders (Dashboard)</button>
+          <button class="btn light" onclick="go('#/whatsapp')">💬 This Order's WhatsApp Page →</button>
+          <button class="btn light" onclick="go('#/invoice')">🧾 This Order's Invoice Page →</button>
+          <button class="btn light" onclick="go('#/track')">📦 This Order's Tracking Page →</button>
+          <button class="btn light" onclick="go('#/checkout')">📝 Back: Checkout Page</button>
+        </div>
+        <p class="muted" style="margin-top:10px">Nothing is lost moving between pages — this order stays selected until you pick another one.</p>
+      </div>
+    </div>
+  </div>`;
+}
+function eoChg(pid,d){ const o=currentOrder(); if(!o) return; const db=getDB(); const cur=db.orders.find(x=>x.orderId===o.orderId); const it=cur.items.find(i=>i.id===pid); if(!it) return; it.qty+=d; if(it.qty<=0) cur.items=cur.items.filter(i=>i.id!==pid); recalcOrder(cur); saveDB(db); renderAll(); }
+function eoAddItem(){ const sel=document.getElementById('eoAddSel'); if(!sel) return; const o=currentOrder(); if(!o) return; const db=getDB(); const cur=db.orders.find(x=>x.orderId===o.orderId); const ex=cur.items.find(i=>i.id===sel.value); if(ex) ex.qty+=1; else { const pr=PRODUCTS.find(x=>x.id===sel.value); cur.items.push({...pr,qty:1}); } recalcOrder(cur); saveDB(db); renderAll(); notice('Item added to '+cur.orderId+' — totals updated. Save Changes to record the remediation in history.'); }
+function saveRemediation(){
+  const o=currentOrder(); if(!o) return; const db=getDB(); const cur=db.orders.find(x=>x.orderId===o.orderId); if(!cur) return;
+  cur.name=document.getElementById('eo_name').value; cur.phone=document.getElementById('eo_phone').value; cur.addr=document.getElementById('eo_addr').value;
+  cur.fulfil=document.getElementById('eo_fulfil').value; cur.status=document.getElementById('eo_status').value; cur.po=document.getElementById('eo_po').value; cur.notes=document.getElementById('eo_notes').value;
+  recalcOrder(cur); if(!cur.history.some(h=>h[0]==='REMEDIATED' && h[1]===nowStr())) cur.history.push(['REMEDIATED',nowStr()]);
+  const inv=db.invoices.find(x=>x.orderId===cur.orderId); if(inv) inv.total=cur.total;
+  db.messages.push({id:'wamid.mock.'+Date.now(),orderId:cur.orderId,dir:'in',status:'delivered',template:'order_amended_v1',at:nowStr(),text:`✏️ Order ${cur.orderId} was updated.\nNew total: ${money(cur.total)} CAD\nStatus: ${cur.status}\nUpdated invoice ${cur.invoiceId} — see Invoice page.`});
+  saveDB(db); logAPI('PATCH','/api/v1/orders/'+cur.orderId,200,63,'Remediation saved — invoice recalculated'); renderAll(); notice('✅ Saved. '+cur.orderId+' updated everywhere — WhatsApp, Invoice, Tracking and Dashboard now show the new details.');
+}
 
 // ---------- Flow actions ----------
 function go(hash){ if(location.hash===hash){ route(); } else location.hash=hash; window.scrollTo({top:0,behavior:'smooth'}); }
@@ -395,11 +469,13 @@ function downloadInvoice(){ const o=currentOrder(); if(!o) return; const txt=`IN
 function resetDemo(){ cart={p3:1,p5:2,p1:1}; saveCart(); renderAll(); go('#/shop'); notice('New demo order started — cart reset with a spray gun, sandpaper ×2, and paint.'); }
 
 // ---------- Router (page-to-page) ----------
-const PAGES=['shop','checkout','processing','whatsapp','invoice','track','dashboard','settings'];
+const PAGES=['shop','checkout','processing','whatsapp','invoice','track','dashboard','settings','order'];
 function route(){
-  let h=(location.hash||'#/shop').replace('#/',''); if(!PAGES.includes(h)) h='shop';
-  // guard: processing/whatsapp/invoice/track need an order
-  if(['processing','whatsapp','invoice','track'].includes(h) && !currentOrder()){ h='shop'; notice('Place an order first — the flow starts on Page 1.'); }
+  let h=(location.hash||'#/shop').replace('#/','');
+  if(h.startsWith('order/')){ const oid=decodeURIComponent(h.slice(6)); if(oid) setCurrent(oid); h='order'; }
+  if(!PAGES.includes(h)) h='shop';
+  // guard: processing/whatsapp/invoice/track/order need an order
+  if(['processing','whatsapp','invoice','track','order'].includes(h) && !currentOrder()){ h='dashboard'; notice('Pick an order from the Dashboard — each order has its own page.'); }
   PAGES.forEach(p=>document.getElementById('page-'+p).classList.toggle('show',p===h));
   document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===h));
   document.querySelectorAll('[data-step]').forEach(a=>{ a.classList.toggle('active',a.dataset.step===h); });
