@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OrderFlow — WhatsApp Order + Invoice Prototype</title>
+<meta name="description" content="Rough prototype: customer order → mocked Business WhatsApp → invoice for both parties. Dummy data only."/>
+<style>
+  :root{--green:#25D366;--dark:#075E54;--teal:#128C7E;--bg:#f6f7f6;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--amber:#fef3c7}
+  *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  a{color:var(--teal)} header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+  .top{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:12px;flex-wrap:wrap}
+  .brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:12px;background:var(--dark);color:#fff;display:grid;place-items:center;font-weight:900;font-size:20px}
+  .brand h1{margin:0;font-size:19px;line-height:1}.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
+  .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff}.badge b{color:var(--dark)}
+  .hero{padding:22px 0 8px}.hero h2{font-size:32px;line-height:1.05;margin:0;letter-spacing:-.02em}.hero p{color:var(--muted);max-width:720px;line-height:1.6}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.step.active{border-color:var(--teal);box-shadow:0 0 0 3px rgba(18,140,126,.12)}
+  .step span{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)}.step h3{margin:6px 0 4px;font-size:15px}.step p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+  .grid{display:grid;grid-template-columns:1.65fr .95fr;gap:16px;align-items:start}@media(max-width:900px){.grid,.steps{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .card h3{margin:0 0 12px}.muted{color:var(--muted);font-size:13px;line-height:1.6}
+  .products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(max-width:560px){.products{grid-template-columns:1fr}}
+  .prod{border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:12px}.emoji{font-size:28px;width:52px;height:52px;background:#f0fdf4;border-radius:12px;display:grid;place-items:center;flex:0 0 auto}
+  .prod h4{margin:0;font-size:15px}.prod p{margin:4px 0;color:var(--muted);font-size:13px;line-height:1.4}
+  .price{font-weight:800}.add{margin-top:8px;background:var(--ink);color:#fff;border:0;padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:700}
+  label{font-size:13px;font-weight:700;display:block;margin:12px 0 6px} input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.row{grid-template-columns:1fr}}
+  .cartline{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
+  .qty button{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer}
+  .totals{margin-top:12px;font-size:14px}.totals div{display:flex;justify-content:space-between;padding:5px 0}.totals .grand{font-size:17px;font-weight:900;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+  .cta{width:100%;margin-top:14px;background:var(--dark);color:#fff;border:0;padding:14px;border-radius:14px;font-weight:900;cursor:pointer;font-size:15px}
+  .cta.green{background:#128C7E}.cta:disabled{opacity:.5;cursor:not-allowed}
+  .lock{background:var(--amber);border:1px solid #fde68a;border-radius:12px;padding:12px;font-size:13px;line-height:1.5}
+  /* WhatsApp mock */
+  .phone{background:#0b141a;border-radius:28px;padding:10px;max-width:380px;margin:0 auto}
+  .screen{background:#ece5dd;border-radius:20px;overflow:hidden;min-height:520px;display:flex;flex-direction:column}
+  .wa-head{background:#075E54;color:#fff;padding:12px 14px;display:flex;gap:10px;align-items:center}.wa-head .avatar{width:36px;height:36px;border-radius:50%;background:#fff;color:#075E54;display:grid;place-items:center;font-weight:900}
+  .wa-body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .bubble{max-width:84%;padding:9px 11px;border-radius:10px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+  .bubble small{display:block;text-align:right;color:#667781;font-size:11px;margin-top:4px}
+  .in{align-self:flex-start;background:#fff}.out{align-self:flex-end;background:#dcf8c6}
+  .sys{align-self:center;background:#fef3c7;font-size:12px;text-align:center;max-width:92%}
+  .timeline{display:grid;gap:8px;margin-top:12px}.tl{display:flex;gap:10px;align-items:flex-start;font-size:13px}.dot{width:22px;height:22px;border-radius:50%;background:#e5e7eb;display:grid;place-items:center;flex:0 0 auto;font-size:12px}.tl.done .dot{background:var(--green)}
+  /* Invoice */
+  .invoice{border:1.5px solid #111827;border-radius:6px;padding:20px;background:#fff;position:relative}
+  .invoice .copy{position:absolute;top:12px;right:12px;font-size:11px;font-weight:900;letter-spacing:.08em;border:1.5px solid #111827;padding:5px 8px;border-radius:999px}
+  .inv-head{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #111827;padding-bottom:12px;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px} th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left} th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tab{padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700}.tab.active{background:#111827;color:#fff}
+  .hidden{display:none!important} footer{padding:28px 0 40px;color:var(--muted);font-size:13px;text-align:center}
+  @media print{header,.no-print{display:none!important} body{background:#fff} .wrap{max-width:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap top">
+  <div class="brand"><div class="logo">↗</div><div><h1>OrderFlow <span style="color:var(--muted);font-weight:500">Prototype</span></h1><p>Toronto Auto Body Supply — Demo Store • Scarborough, ON • Dummy data only</p></div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge">🟢 GitHub Pages</span><span class="badge">WhatsApp: <b>Mock / Locked</b></span><span class="badge">No real payments</span></div>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <h2>Auto body supplies: Order → WhatsApp → Invoice.<br/>One flow, both parties covered.</h2>
+    <p>This is a rough, clickable prototype. For an auto body supply shop — paints, spray guns, sanders, fillers and consumables. Place a test order, watch it get “processed” through a mocked Business WhatsApp conversation, then get a matching invoice copy for the customer (body shop) and for the supply shop.</p>
+  </section>
+
+  <div class="steps">
+    <div class="step active" id="s1"><span>Step 1</span><h3>Take order from customer</h3><p>Catalogue, cart and checkout form with dummy products.</p></div>
+    <div class="step" id="s2"><span>Step 2</span><h3>Process via Business WhatsApp</h3><p>No connector yet — flow is mocked &amp; locked in a phone UI.</p></div>
+    <div class="step" id="s3"><span>Step 3</span><h3>Invoice for both parties</h3><p>Same invoice №, two copies: Customer Copy + Business Copy.</p></div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: Shop + Checkout -->
+    <div style="display:grid;gap:16px">
+      <section class="card">
+        <h3>Catalogue — Auto Body Supplies (dummy data)</h3>
+        <div class="products" id="products"></div>
+      </section>
+
+      <section class="card">
+        <h3>Customer details</h3>
+        <div class="row">
+          <div><label>Full name</label><input id="custName" value="Mike Torres — Mike's Collision & Repair"/></div>
+          <div><label>WhatsApp number</label><input id="custPhone" value="+1 416-555-0187"/></div>
+        </div>
+        <label>Delivery / pickup address</label>
+        <input id="custAddr" value="2450 Lawrence Ave E, Scarborough, ON (demo shop)"/>
+        <div class="row">
+          <div><label>Fulfilment</label><select id="fulfil"><option>Delivery</option><option>Pickup</option></select></div>
+          <div><label>Payment (dummy)</label><select id="pay"><option>Pay on delivery</option><option>E-transfer (demo)</option><option>Card on file (demo)</option></select></div>
+        </div>
+        <label>Notes</label><textarea id="notes" rows="2">Paint matched to code NH-731P, please. Deliver to Bay 3 — demo note.</textarea>
+        <p class="muted">Pre-filled with dummy data so you can test in one click. Edit anything.</p>
+      </section>
+    </div>
+
+    <!-- RIGHT: Cart -->
+    <aside class="card" style="position:sticky;top:76px">
+      <h3>Your order</h3>
+      <div id="cart"></div>
+      <div class="totals" id="totals"></div>
+      <button class="cta" id="placeBtn">Place order → Send via WhatsApp</button>
+      <p class="muted" style="text-align:center">Prototype only — nothing is charged or sent.</p>
+      <div class="lock"><strong>🔒 WhatsApp Business API — Locked / Mocked</strong><br/>We don’t have a WhatsApp connector connected yet. In production this step would call the WhatsApp Business Platform to message <b>+1 (647) 555-0149 (Business)</b>. Here it’s simulated in the phone below.</div>
+      <div class="timeline" id="timeline">
+        <div class="tl" data-tl="received"><div class="dot">1</div><div><b>Order received</b><div class="muted">Waiting for checkout…</div></div></div>
+        <div class="tl" data-tl="whatsapp"><div class="dot">2</div><div><b>WhatsApp processing</b><div class="muted">Mock messages to customer + business</div></div></div>
+        <div class="tl" data-tl="invoice"><div class="dot">3</div><div><b>Invoice generated</b><div class="muted">Customer + business copies created</div></div></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- WhatsApp + Invoice -->
+  <section id="result" class="hidden" style="margin-top:18px">
+    <div class="grid">
+      <div class="card no-print">
+        <h3>2 — Business WhatsApp (mock)</h3>
+        <p class="muted">This is exactly what both sides would see if the connector were live.</p>
+        <div class="phone"><div class="screen">
+          <div class="wa-head"><div class="avatar">AB</div><div><div style="font-weight:800">Toronto Auto Body Supply</div><div style="font-size:12px;opacity:.9">Business Account • online (mock)</div></div><div style="margin-left:auto">📞 ⋮</div></div>
+          <div class="wa-body" id="waBody"></div>
+          <div style="padding:10px;background:#f0f0f0;display:flex;gap:8px"><input placeholder="Message (disabled in prototype)" disabled style="border-radius:999px"/><button disabled style="border-radius:50%;width:42px;height:42px;border:0;background:#25D366">➤</button></div>
+        </div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:center">
+          <button class="tab" onclick="simulateReply()">↩️ Simulate customer reply: “Confirmed, thanks!”</button>
+          <button class="tab" onclick="markPreparing()">👨‍🍳 Business: Mark preparing</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>3 — Invoice — for both parties</h3>
+        <p class="muted">One invoice, two identical copies with different headers. Print or save either one.</p>
+        <div class="tabs no-print">
+          <button class="tab active" id="tabCust" onclick="showCopy('cust')">👤 Customer Copy</button>
+          <button class="tab" id="tabBiz" onclick="showCopy('biz')">🏪 Business Copy</button>
+          <button class="tab" onclick="window.print()">🖨 Print / Save PDF</button>
+          <button class="tab" onclick="downloadInvoice()">⬇ Download .txt</button>
+        </div>
+        <div id="invoiceBox"></div>
+        <div class="lock no-print" style="margin-top:12px"><strong>How “sending” works in this prototype:</strong> Invoice is shown here + included as the last WhatsApp bubble. In production, the same PDF/link would be sent via WhatsApp to the customer and archived / emailed to the business.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card no-print" style="margin-top:16px">
+    <h3>Recent dummy orders</h3><div id="history" class="muted">No orders yet in this session.</div>
+  </section>
+</main>
+<footer class="wrap">OrderFlow Prototype • Dummy data only • HST 13% (Ontario demo) • Built for GitHub Pages — no backend, no real WhatsApp, no real payments.</footer>
+
+<script>
+const PRODUCTS=[
+ {id:'p1',emoji:'🎨',name:'2K Basecoat Paint — Jet Black, 1 Gal',desc:'SKU PB-BLK-1G • OEM colour-match, demo',price:189.99},
+ {id:'p2',emoji:'✨',name:'2K Clear Coat Kit 4:1 (5L)',desc:'SKU CC-2K-5L • High gloss, fast cure',price:124.50},
+ {id:'p3',emoji:'🔫',name:'HVLP Spray Gun 1.3mm',desc:'SKU SG-HVLP-13 • Stainless needle, 600ml cup',price:179.00},
+ {id:'p4',emoji:'🌀',name:'Dual-Action Orbital Sander 6-inch',desc:'SKU DS-DA6 • 5mm orbit, variable speed',price:139.99},
+ {id:'p5',emoji:'📄',name:'Sandpaper Assortment 80–2000 Grit (50pk)',desc:'SKU SP-MIX-50 • Hook & loop discs',price:24.99},
+ {id:'p6',emoji:'🛠️',name:'Body Filler + Hardener, 3L',desc:'SKU BF-PRO-3L • Lightweight, easy sand',price:42.75},
+ {id:'p7',emoji:'🥫',name:'High-Build Primer Surfacer — Grey, 1 Gal',desc:'SKU PR-HB-GRY • Fill & seal in one',price:68.99},
+ {id:'p8',emoji:'🎭',name:'Masking Kit — Tape, Paper & Sheeting',desc:'SKU MK-STD-01 • 18mm/36mm tape + roll',price:19.95},
+];
+let cart={p3:1,p5:2,p1:1}; // pre-loaded demo cart: spray gun, sandpaper, paint
+let currentOrder=null, copy='cust';
+
+const money=n=>'$'+n.toFixed(2);
+function renderProducts(){
+  document.getElementById('products').innerHTML=PRODUCTS.map(p=>`
+   <div class="prod"><div class="emoji">${p.emoji}</div><div style="flex:1">
+    <h4>${p.name}</h4><p>${p.desc}</p><div style="display:flex;justify-content:space-between;align-items:center"><span class="price">${money(p.price)} CAD</span><button class="add" onclick="add('${p.id}')">+ Add</button></div>
+   </div></div>`).join('');
+}
+function add(id){cart[id]=(cart[id]||0)+1;renderCart()}
+function chg(id,d){cart[id]=(cart[id]||0)+d; if(cart[id]<=0) delete cart[id]; renderCart()}
+function calc(){
+  let sub=0; for(const [id,q] of Object.entries(cart)){const p=PRODUCTS.find(x=>x.id===id); sub+=p.price*q}
+  const delivery=document.getElementById('fulfil')?.value==='Delivery'?4.99:0;
+  const hst=(sub+delivery)*0.13; return{sub,delivery,hst,total:sub+delivery+hst}
+}
+function renderCart(){
+  const box=document.getElementById('cart');
+  if(!Object.keys(cart).length){box.innerHTML='<p class="muted">Cart is empty — add some supplies.</p>'}
+  else box.innerHTML=Object.entries(cart).map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);return `<div class="cartline"><div><b>${p.name}</b><div class="muted">${money(p.price)} each</div></div><div class="qty"><button onclick="chg('${id}',-1)">−</button> <b>${q}</b> <button onclick="chg('${id}',1)">+</button></div><b>${money(p.price*q)}</b></div>`}).join('');
+  const t=calc(); document.getElementById('totals').innerHTML=`<div><span>Subtotal</span><span>${money(t.sub)}</span></div><div><span>Delivery</span><span>${t.delivery?money(t.delivery):'Free / Pickup'}</span></div><div><span>HST (13%)</span><span>${money(t.hst)}</span></div><div class="grand"><span>Total CAD</span><span>${money(t.total)}</span></div>`;
+  document.getElementById('placeBtn').disabled=!Object.keys(cart).length;
+}
+document.getElementById('fulfil').addEventListener('change',renderCart);
+
+function setStep(n){[1,2,3].forEach(i=>document.getElementById('s'+i).classList.toggle('active',i===n))}
+function done(key){document.querySelector(`[data-tl="${key}"]`)?.classList.add('done')}
+
+function placeOrder(){
+  const t=calc(); const now=new Date();
+  const rand=Math.floor(1000+Math.random()*9000);
+  currentOrder={
+    orderId:'ORD-2026-'+rand, invoiceId:'INV-2026-'+rand,
+    date:now.toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'}),
+    name:document.getElementById('custName').value||'Demo Customer',
+    phone:document.getElementById('custPhone').value||'+1 647-555-0000',
+    addr:document.getElementById('custAddr').value, fulfil:document.getElementById('fulfil').value,
+    pay:document.getElementById('pay').value, notes:document.getElementById('notes').value,
+    items:Object.entries(cart).map(([id,q])=>({...PRODUCTS.find(x=>x.id===id),qty:q})), ...t
+  };
+  try{const h=JSON.parse(localStorage.getItem('orderflow_history')||'[]');h.unshift(currentOrder);localStorage.setItem('orderflow_history',JSON.stringify(h.slice(0,5)))}catch(e){}
+  setStep(2); done('received');
+  document.getElementById('result').classList.remove('hidden');
+  renderWhatsApp(); renderInvoice(); renderHistory();
+  setTimeout(()=>{done('whatsapp'); setStep(3)},600);
+  setTimeout(()=>{done('invoice')},1100);
+  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+function orderText(o){return o.items.map(i=>`• ${i.qty} × ${i.name} — ${money(i.price*i.qty)}`).join('\n')}
+function renderWhatsApp(){
+  const o=currentOrder;
+  document.getElementById('waBody').innerHTML=`
+   <div class="bubble sys">🔒 This is a mocked WhatsApp Business conversation — no message was actually sent.</div>
+   <div class="bubble out">Hi, I'd like to place an order:\n\n${orderText(o)}\n\nName: ${o.name}\n${o.fulfil}: ${o.addr}\nPayment: ${o.pay}<small>${o.date} ✓✓</small></div>
+   <div class="bubble in"><b>Toronto Auto Body Supply</b>\nThanks ${o.name.split(' ')[0]}! ✅ Received order <b>${o.orderId}</b>.\n\nTotal: <b>${money(o.total)} CAD</b> (incl. HST)\nStatus: Confirmed — preparing now.\n\nYour invoice ${o.invoiceId} is below 👇<small>Business WhatsApp (mock)</small></div>
+   <div class="bubble in">🧾 <b>Invoice ${o.invoiceId}</b>\n${orderText(o)}\nSubtotal: ${money(o.sub)}\nDelivery: ${money(o.delivery)}\nHST 13%: ${money(o.hst)}\n<b>Total: ${money(o.total)} CAD</b>\n\nCustomer copy + Business copy generated.<small>Invoice sent to both parties (mock)</small></div>
+  `;
+}
+function simulateReply(){document.getElementById('waBody').insertAdjacentHTML('beforeend',`<div class="bubble out">Confirmed, thanks! 👍<small>Customer reply (simulated)</small></div>`)}
+function markPreparing(){document.getElementById('waBody').insertAdjacentHTML('beforeend',`<div class="bubble in">👨‍🍳 Update: Your order ${currentOrder.orderId} is now <b>Preparing</b>. We'll message you when it's on its way.<small>Business WhatsApp (mock)</small></div>`)}
+
+function showCopy(c){copy=c;document.getElementById('tabCust').classList.toggle('active',c==='cust');document.getElementById('tabBiz').classList.toggle('active',c==='biz');renderInvoice()}
+function renderInvoice(){
+  if(!currentOrder) return; const o=currentOrder; const isCust=copy==='cust';
+  document.getElementById('invoiceBox').innerHTML=`
+  <div class="invoice"><div class="copy">${isCust?'CUSTOMER COPY':'BUSINESS COPY'}</div>
+   <div class="inv-head"><div><div style="font-weight:900;font-size:18px">Toronto Auto Body Supply — Demo Store</div><div class="muted">1200 Markham Rd, Scarborough, ON M1H 0A1 (demo)<br/>Business WhatsApp: +1 (647) 555-0149 (mock)<br/>GST/HST №: 123456789 RT0001 (dummy)</div></div>
+   <div style="text-align:right"><div style="font-size:22px;font-weight:900">INVOICE</div><div>${o.invoiceId}</div><div class="muted">${o.date}</div><div class="muted">Order: ${o.orderId}</div></div></div>
+   <div class="row" style="margin-bottom:8px"><div><b>Billed to (Customer)</b><br/>${o.name}<br/>${o.phone}<br/>${o.addr}</div><div><b>Issued by (Business)</b><br/>Toronto Auto Body Supply — Demo Store<br/>${o.fulfil} • ${o.pay}<br/><span class="muted">Notes: ${o.notes||'—'}</span></div></div>
+   <table><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th style="text-align:right">Amount</th></tr></thead><tbody>
+   ${o.items.map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>${money(i.price)}</td><td style="text-align:right">${money(i.price*i.qty)}</td></tr>`).join('')}
+   </tbody></table>
+   <div class="totals"><div><span>Subtotal</span><span>${money(o.sub)}</span></div><div><span>Delivery</span><span>${money(o.delivery)}</span></div><div><span>HST (13%)</span><span>${money(o.hst)}</span></div><div class="grand"><span>Total due (CAD)</span><span>${money(o.total)}</span></div></div>
+   <p class="muted" style="margin-top:14px">${isCust?'Thank you for your order! This copy is for the customer.':'Internal copy — for business records / accounting.'} Status: <b>PAID / PAY ON DELIVERY (demo)</b> • Sent via WhatsApp (mock) to both parties on ${o.date}.</p>
+  </div>`;
+}
+function downloadInvoice(){
+  if(!currentOrder) return; const o=currentOrder;
+  const txt=`INVOICE ${o.invoiceId} — ${copy==='cust'?'CUSTOMER COPY':'BUSINESS COPY'}\nToronto Auto Body Supply — Demo Store (dummy)\nDate: ${o.date}  Order: ${o.orderId}\nCustomer: ${o.name} ${o.phone}\nAddress: ${o.addr}\n\n${orderText(o)}\nSubtotal: ${money(o.sub)}\nDelivery: ${money(o.delivery)}\nHST 13%: ${money(o.hst)}\nTOTAL CAD: ${money(o.total)}\n\nSent via Business WhatsApp (mock) to both parties.`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=o.invoiceId+'-'+copy+'.txt';a.click();
+}
+function renderHistory(){
+  try{const h=JSON.parse(localStorage.getItem('orderflow_history')||'[]'); if(h.length) document.getElementById('history').innerHTML=h.map(o=>`<div class="cartline"><span><b>${o.invoiceId}</b> — ${o.name}</span><span>${o.date}</span><b>${money(o.total)}</b></div>`).join('')}catch(e){}
+}
+document.getElementById('placeBtn').addEventListener('click',placeOrder);
+renderProducts(); renderCart(); renderHistory();
+</script>
+</body>
+</html>
