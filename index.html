@@ -3,251 +3,412 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>OrderFlow — WhatsApp Order + Invoice Prototype</title>
-<meta name="description" content="Rough prototype: customer order → mocked Business WhatsApp → invoice for both parties. Dummy data only."/>
+<title>OrderFlow v2 — Auto Body Supply | Page-to-Page Prototype (Simulated Live Env)</title>
+<meta name="description" content="Page-to-page prototype simulating a real environment: shop → checkout → API processing → WhatsApp → invoice → tracking. Dummy data, mocked keys."/>
 <style>
-  :root{--green:#25D366;--dark:#075E54;--teal:#128C7E;--bg:#f6f7f6;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--amber:#fef3c7}
-  *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
-  a{color:var(--teal)} header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
-  .wrap{max-width:1180px;margin:0 auto;padding:0 18px}
-  .top{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:12px;flex-wrap:wrap}
-  .brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:12px;background:var(--dark);color:#fff;display:grid;place-items:center;font-weight:900;font-size:20px}
-  .brand h1{margin:0;font-size:19px;line-height:1}.brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
-  .badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff}.badge b{color:var(--dark)}
-  .hero{padding:22px 0 8px}.hero h2{font-size:32px;line-height:1.05;margin:0;letter-spacing:-.02em}.hero p{color:var(--muted);max-width:720px;line-height:1.6}
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
-  .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}.step.active{border-color:var(--teal);box-shadow:0 0 0 3px rgba(18,140,126,.12)}
-  .step span{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)}.step h3{margin:6px 0 4px;font-size:15px}.step p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
-  .grid{display:grid;grid-template-columns:1.65fr .95fr;gap:16px;align-items:start}@media(max-width:900px){.grid,.steps{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
-  .card h3{margin:0 0 12px}.muted{color:var(--muted);font-size:13px;line-height:1.6}
-  .products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(max-width:560px){.products{grid-template-columns:1fr}}
-  .prod{border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:12px}.emoji{font-size:28px;width:52px;height:52px;background:#f0fdf4;border-radius:12px;display:grid;place-items:center;flex:0 0 auto}
-  .prod h4{margin:0;font-size:15px}.prod p{margin:4px 0;color:var(--muted);font-size:13px;line-height:1.4}
-  .price{font-weight:800}.add{margin-top:8px;background:var(--ink);color:#fff;border:0;padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:700}
-  label{font-size:13px;font-weight:700;display:block;margin:12px 0 6px} input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.row{grid-template-columns:1fr}}
-  .cartline{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px}
-  .qty button{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer}
-  .totals{margin-top:12px;font-size:14px}.totals div{display:flex;justify-content:space-between;padding:5px 0}.totals .grand{font-size:17px;font-weight:900;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
-  .cta{width:100%;margin-top:14px;background:var(--dark);color:#fff;border:0;padding:14px;border-radius:14px;font-weight:900;cursor:pointer;font-size:15px}
-  .cta.green{background:#128C7E}.cta:disabled{opacity:.5;cursor:not-allowed}
-  .lock{background:var(--amber);border:1px solid #fde68a;border-radius:12px;padding:12px;font-size:13px;line-height:1.5}
-  /* WhatsApp mock */
-  .phone{background:#0b141a;border-radius:28px;padding:10px;max-width:380px;margin:0 auto}
-  .screen{background:#ece5dd;border-radius:20px;overflow:hidden;min-height:520px;display:flex;flex-direction:column}
-  .wa-head{background:#075E54;color:#fff;padding:12px 14px;display:flex;gap:10px;align-items:center}.wa-head .avatar{width:36px;height:36px;border-radius:50%;background:#fff;color:#075E54;display:grid;place-items:center;font-weight:900}
-  .wa-body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
-  .bubble{max-width:84%;padding:9px 11px;border-radius:10px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;box-shadow:0 1px 1px rgba(0,0,0,.08)}
-  .bubble small{display:block;text-align:right;color:#667781;font-size:11px;margin-top:4px}
-  .in{align-self:flex-start;background:#fff}.out{align-self:flex-end;background:#dcf8c6}
-  .sys{align-self:center;background:#fef3c7;font-size:12px;text-align:center;max-width:92%}
-  .timeline{display:grid;gap:8px;margin-top:12px}.tl{display:flex;gap:10px;align-items:flex-start;font-size:13px}.dot{width:22px;height:22px;border-radius:50%;background:#e5e7eb;display:grid;place-items:center;flex:0 0 auto;font-size:12px}.tl.done .dot{background:var(--green)}
-  /* Invoice */
-  .invoice{border:1.5px solid #111827;border-radius:6px;padding:20px;background:#fff;position:relative}
-  .invoice .copy{position:absolute;top:12px;right:12px;font-size:11px;font-weight:900;letter-spacing:.08em;border:1.5px solid #111827;padding:5px 8px;border-radius:999px}
-  .inv-head{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #111827;padding-bottom:12px;margin-bottom:12px}
-  table{width:100%;border-collapse:collapse;font-size:13.5px} th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left} th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tab{padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700}.tab.active{background:#111827;color:#fff}
-  .hidden{display:none!important} footer{padding:28px 0 40px;color:var(--muted);font-size:13px;text-align:center}
-  @media print{header,.no-print{display:none!important} body{background:#fff} .wrap{max-width:none}}
+:root{--green:#25D366;--dark:#075E54;--teal:#128C7E;--bg:#f6f7f6;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--amber:#fef3c7;--code:#0b1220}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--teal);text-decoration:none}header{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--line)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:12px;flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:12px;background:var(--dark);color:#fff;display:grid;place-items:center;font-weight:900;font-size:20px}
+.brand h1{margin:0;font-size:18px}.brand p{margin:3px 0 0;color:var(--muted);font-size:12.5px}
+.badge{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#fff}.badge b{color:var(--dark)}
+nav.main{display:flex;gap:6px;flex-wrap:wrap;padding:0 0 12px}
+nav.main a{padding:8px 12px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);background:#fff}
+nav.main a.active{background:#111827;color:#fff;border-color:#111827}
+.stepper{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0}
+.stepper a{flex:1;min-width:130px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--ink);font-size:13px}
+.stepper a.active{border-color:var(--teal);box-shadow:0 0 0 3px rgba(18,140,126,.12)}
+.stepper a.done{border-color:#bbf7d0;background:#f0fdf4}
+.stepper span{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--teal)}
+.page{display:none;padding:6px 0 30px}.page.show{display:block}
+.hero h2{font-size:30px;line-height:1.08;margin:8px 0;letter-spacing:-.02em}.hero p{color:var(--muted);max-width:760px;line-height:1.6}
+.grid{display:grid;grid-template-columns:1.65fr .95fr;gap:16px;align-items:start}@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px}
+.card h3{margin:0 0 12px}.muted{color:var(--muted);font-size:13px;line-height:1.6}
+.products{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(max-width:560px){.products{grid-template-columns:1fr}}
+.prod{border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:12px}.emoji{font-size:28px;width:52px;height:52px;background:#f0fdf4;border-radius:12px;display:grid;place-items:center;flex:0 0 auto}
+.prod h4{margin:0;font-size:15px}.prod p{margin:4px 0;color:var(--muted);font-size:13px;line-height:1.4}
+.price{font-weight:800}.stock{font-size:12px}.stock.low{color:#b45309;font-weight:700}.stock.out{color:#dc2626;font-weight:800}
+.add{margin-top:8px;background:var(--ink);color:#fff;border:0;padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:700}.add:disabled{opacity:.4}
+label{font-size:13px;font-weight:700;display:block;margin:12px 0 6px}input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.row{grid-template-columns:1fr}}
+.cartline{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:14px;align-items:center}
+.qty button{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer}
+.totals{margin-top:12px;font-size:14px}.totals div{display:flex;justify-content:space-between;padding:5px 0}.totals .grand{font-size:17px;font-weight:900;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+.btn{display:inline-block;background:var(--ink);color:#fff;border:0;padding:12px 18px;border-radius:12px;font-weight:800;cursor:pointer;font-size:14px}
+.btn.green{background:var(--dark)}.btn.light{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btnrow{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px}
+.lock{background:var(--amber);border:1px solid #fde68a;border-radius:12px;padding:12px;font-size:13px;line-height:1.55}
+.okbox{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px;font-size:13px;line-height:1.55}
+pre{background:var(--code);color:#d1fae5;padding:14px;border-radius:14px;overflow:auto;font-size:12.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.logline{border-bottom:1px solid #1f2937;padding:8px 0}.pill{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:800;background:#e5e7eb}.pill.post{background:#dcfce7}.pill.get{background:#dbeafe}.pill.webhook{background:#fef3c7}
+.phone{background:#0b141a;border-radius:28px;padding:10px;max-width:380px;margin:0 auto}
+.screen{background:#ece5dd;border-radius:20px;overflow:hidden;min-height:500px;display:flex;flex-direction:column}
+.wa-head{background:#075E54;color:#fff;padding:12px 14px;display:flex;gap:10px;align-items:center}.wa-head .avatar{width:36px;height:36px;border-radius:50%;background:#fff;color:#075E54;display:grid;place-items:center;font-weight:900}
+.wa-body{padding:14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.bubble{max-width:84%;padding:9px 11px;border-radius:10px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;box-shadow:0 1px 1px rgba(0,0,0,.08)}
+.bubble small{display:block;text-align:right;color:#667781;font-size:11px;margin-top:4px}
+.in{align-self:flex-start;background:#fff}.out{align-self:flex-end;background:#dcf8c6}.sys{align-self:center;background:#fef3c7;font-size:12px;text-align:center;max-width:92%}
+.invoice{border:1.5px solid #111827;border-radius:6px;padding:20px;background:#fff;position:relative}
+.invoice .copy{position:absolute;top:12px;right:12px;font-size:11px;font-weight:900;letter-spacing:.08em;border:1.5px solid #111827;padding:5px 8px;border-radius:999px}
+.inv-head{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #111827;padding-bottom:12px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tab{padding:9px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700}.tab.active{background:#111827;color:#fff}
+.timeline{display:grid;gap:10px}.tl{display:flex;gap:10px;align-items:flex-start;font-size:14px}.dot{width:26px;height:26px;border-radius:50%;background:#e5e7eb;display:grid;place-items:center;flex:0 0 auto;font-size:13px}.tl.done .dot{background:var(--green)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px}.kpi b{font-size:24px;display:block}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px}
+footer{padding:10px 0 40px;color:var(--muted);font-size:13px;text-align:center}
+@media print{header,nav.main,.stepper,.no-print{display:none!important}body{background:#fff}.wrap{max-width:none}}
 </style>
 </head>
 <body>
-<header><div class="wrap top">
-  <div class="brand"><div class="logo">↗</div><div><h1>OrderFlow <span style="color:var(--muted);font-weight:500">Prototype</span></h1><p>Toronto Auto Body Supply — Demo Store • Scarborough, ON • Dummy data only</p></div></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge">🟢 GitHub Pages</span><span class="badge">WhatsApp: <b>Mock / Locked</b></span><span class="badge">No real payments</span></div>
+<header><div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">↗</div><div><h1>OrderFlow <span style="color:var(--muted);font-weight:500">v2 — Simulated Live</span></h1><p>Toronto Auto Body Supply • Scarborough, ON • Page-to-page prototype</p></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="badge">ENV: <b id="envBadge">SANDBOX</b></span><span class="badge">WhatsApp: <b>MOCK API</b></span><span class="badge">Keys: <b>Not plugged in</b></span></div>
+  </div>
+  <nav class="main" id="mainNav">
+    <a href="#/shop" data-nav="shop">🛒 Shop</a>
+    <a href="#/checkout" data-nav="checkout">📝 Checkout</a>
+    <a href="#/processing" data-nav="processing">⚙️ Processing</a>
+    <a href="#/whatsapp" data-nav="whatsapp">💬 WhatsApp</a>
+    <a href="#/invoice" data-nav="invoice">🧾 Invoice</a>
+    <a href="#/track" data-nav="track">📦 Track Order</a>
+    <a href="#/dashboard" data-nav="dashboard">🏪 Business Dashboard</a>
+    <a href="#/settings" data-nav="settings">🔑 Environment / Keys</a>
+  </nav>
 </div></header>
 
 <main class="wrap">
-  <section class="hero">
-    <h2>Auto body supplies: Order → WhatsApp → Invoice.<br/>One flow, both parties covered.</h2>
-    <p>This is a rough, clickable prototype. For an auto body supply shop — paints, spray guns, sanders, fillers and consumables. Place a test order, watch it get “processed” through a mocked Business WhatsApp conversation, then get a matching invoice copy for the customer (body shop) and for the supply shop.</p>
+  <div class="stepper" id="stepper">
+    <a href="#/shop" data-step="shop"><span>Page 1</span>Shop / Catalogue</a>
+    <a href="#/checkout" data-step="checkout"><span>Page 2</span>Checkout</a>
+    <a href="#/processing" data-step="processing"><span>Page 3</span>API Processing</a>
+    <a href="#/whatsapp" data-step="whatsapp"><span>Page 4</span>WhatsApp</a>
+    <a href="#/invoice" data-step="invoice"><span>Page 5</span>Invoice — Both Parties</a>
+    <a href="#/track" data-step="track"><span>Page 6</span>Tracking</a>
+  </div>
+  <div id="notice"></div>
+
+  <!-- PAGE 1 SHOP -->
+  <section class="page" id="page-shop">
+    <div class="hero"><h2>Page 1 — Shop</h2><p>Customer browses the auto body catalogue. Stock is simulated from a fake inventory database — ordering decrements it on Page 3, just like production would.</p></div>
+    <div class="grid">
+      <div class="card"><h3>Catalogue — Auto Body Supplies (dummy data)</h3><div class="products" id="products"></div></div>
+      <aside class="card"><h3>Cart</h3><div id="cartShop"></div><div class="totals" id="totalsShop"></div>
+        <div class="btnrow"><button class="btn green" onclick="go('#/checkout')">Continue to Checkout →</button></div>
+        <p class="muted">Simulated DB: <span class="mono" id="dbHint1"></span></p></aside>
+    </div>
   </section>
 
-  <div class="steps">
-    <div class="step active" id="s1"><span>Step 1</span><h3>Take order from customer</h3><p>Catalogue, cart and checkout form with dummy products.</p></div>
-    <div class="step" id="s2"><span>Step 2</span><h3>Process via Business WhatsApp</h3><p>No connector yet — flow is mocked &amp; locked in a phone UI.</p></div>
-    <div class="step" id="s3"><span>Step 3</span><h3>Invoice for both parties</h3><p>Same invoice №, two copies: Customer Copy + Business Copy.</p></div>
-  </div>
-
-  <div class="grid">
-    <!-- LEFT: Shop + Checkout -->
-    <div style="display:grid;gap:16px">
-      <section class="card">
-        <h3>Catalogue — Auto Body Supplies (dummy data)</h3>
-        <div class="products" id="products"></div>
-      </section>
-
-      <section class="card">
-        <h3>Customer details</h3>
-        <div class="row">
-          <div><label>Full name</label><input id="custName" value="Mike Torres — Mike's Collision & Repair"/></div>
-          <div><label>WhatsApp number</label><input id="custPhone" value="+1 416-555-0187"/></div>
-        </div>
-        <label>Delivery / pickup address</label>
-        <input id="custAddr" value="2450 Lawrence Ave E, Scarborough, ON (demo shop)"/>
-        <div class="row">
-          <div><label>Fulfilment</label><select id="fulfil"><option>Delivery</option><option>Pickup</option></select></div>
-          <div><label>Payment (dummy)</label><select id="pay"><option>Pay on delivery</option><option>E-transfer (demo)</option><option>Card on file (demo)</option></select></div>
-        </div>
-        <label>Notes</label><textarea id="notes" rows="2">Paint matched to code NH-731P, please. Deliver to Bay 3 — demo note.</textarea>
-        <p class="muted">Pre-filled with dummy data so you can test in one click. Edit anything.</p>
-      </section>
-    </div>
-
-    <!-- RIGHT: Cart -->
-    <aside class="card" style="position:sticky;top:76px">
-      <h3>Your order</h3>
-      <div id="cart"></div>
-      <div class="totals" id="totals"></div>
-      <button class="cta" id="placeBtn">Place order → Send via WhatsApp</button>
-      <p class="muted" style="text-align:center">Prototype only — nothing is charged or sent.</p>
-      <div class="lock"><strong>🔒 WhatsApp Business API — Locked / Mocked</strong><br/>We don’t have a WhatsApp connector connected yet. In production this step would call the WhatsApp Business Platform to message <b>+1 (647) 555-0149 (Business)</b>. Here it’s simulated in the phone below.</div>
-      <div class="timeline" id="timeline">
-        <div class="tl" data-tl="received"><div class="dot">1</div><div><b>Order received</b><div class="muted">Waiting for checkout…</div></div></div>
-        <div class="tl" data-tl="whatsapp"><div class="dot">2</div><div><b>WhatsApp processing</b><div class="muted">Mock messages to customer + business</div></div></div>
-        <div class="tl" data-tl="invoice"><div class="dot">3</div><div><b>Invoice generated</b><div class="muted">Customer + business copies created</div></div></div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- WhatsApp + Invoice -->
-  <section id="result" class="hidden" style="margin-top:18px">
+  <!-- PAGE 2 CHECKOUT -->
+  <section class="page" id="page-checkout">
+    <div class="hero"><h2>Page 2 — Checkout</h2><p>Customer details + order review. Placing the order calls the simulated API on the next page — no real charge, no real message.</p></div>
     <div class="grid">
-      <div class="card no-print">
-        <h3>2 — Business WhatsApp (mock)</h3>
-        <p class="muted">This is exactly what both sides would see if the connector were live.</p>
+      <div class="card"><h3>Customer (body shop)</h3>
+        <div class="row"><div><label>Contact name / Shop</label><input id="custName" value="Mike Torres — Mike's Collision & Repair"/></div>
+        <div><label>WhatsApp number</label><input id="custPhone" value="+1 416-555-0187"/></div></div>
+        <label>Delivery / pickup address</label><input id="custAddr" value="2450 Lawrence Ave E, Scarborough, ON (demo shop)"/>
+        <div class="row"><div><label>Fulfilment</label><select id="fulfil"><option>Delivery</option><option>Pickup</option></select></div>
+        <div><label>Payment (dummy)</label><select id="pay"><option>Account — Net 30 (demo)</option><option>E-transfer (demo)</option><option>Pay on delivery</option></select></div></div>
+        <label>Notes — paint code, PO №, bay, etc.</label><textarea id="notes" rows="2">Paint matched to code NH-731P. PO #MC-1042. Deliver to Bay 3.</textarea>
+        <label>Purchase Order № (optional)</label><input id="poNum" value="MC-1042"/>
+      </div>
+      <aside class="card"><h3>Order review</h3><div id="cartCheckout"></div><div class="totals" id="totalsCheckout"></div>
+        <div class="btnrow"><button class="btn light" onclick="go('#/shop')">← Back to Shop</button><button class="btn green" id="placeBtn" onclick="placeOrder()">Place Order →</button></div>
+        <p class="muted">Next page simulates: <span class="mono">POST /api/orders</span>, inventory reserve, WhatsApp send, webhook, invoice create.</p></aside>
+    </div>
+  </section>
+
+  <!-- PAGE 3 PROCESSING -->
+  <section class="page" id="page-processing">
+    <div class="hero"><h2>Page 3 — Processing (Simulated Backend)</h2><p>This is the “real environment” simulation. Every step you’d see in production logs happens here — against a mock API in your browser, with fake latency, status codes, request/response JSON, and webhook events.</p></div>
+    <div class="grid">
+      <div>
+        <div class="card"><h3>Pipeline</h3><div class="timeline" id="pipeline"></div>
+          <div class="btnrow"><button class="btn light" onclick="go('#/checkout')">← Checkout</button><span><button class="btn light" onclick="runProcessing(true)">↻ Replay simulation</button> <button class="btn green" id="toWhats" disabled onclick="go('#/whatsapp')">Continue to WhatsApp →</button></span></div>
+        </div>
+        <div class="card"><h3>Last request / response</h3><pre id="payloadBox">Waiting to run…</pre></div>
+      </div>
+      <div class="card"><h3>API Log — simulated server</h3><div id="apiLog" class="mono"></div><p class="muted">Base URL (sandbox): <span class="mono">https://sandbox.orderflow.local/api/v1</span><br/>In production these same calls go to your real backend + Meta’s Graph API.</p></div>
+    </div>
+  </section>
+
+  <!-- PAGE 4 WHATSAPP -->
+  <section class="page" id="page-whatsapp">
+    <div class="hero"><h2>Page 4 — Business WhatsApp</h2><p>Exactly what both sides would see once keys are plugged in. Right now every message is created by the mock WhatsApp provider and logged as a webhook.</p></div>
+    <div class="grid">
+      <div class="card no-print"><h3>Conversation</h3>
         <div class="phone"><div class="screen">
           <div class="wa-head"><div class="avatar">AB</div><div><div style="font-weight:800">Toronto Auto Body Supply</div><div style="font-size:12px;opacity:.9">Business Account • online (mock)</div></div><div style="margin-left:auto">📞 ⋮</div></div>
           <div class="wa-body" id="waBody"></div>
           <div style="padding:10px;background:#f0f0f0;display:flex;gap:8px"><input placeholder="Message (disabled in prototype)" disabled style="border-radius:999px"/><button disabled style="border-radius:50%;width:42px;height:42px;border:0;background:#25D366">➤</button></div>
         </div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:center">
-          <button class="tab" onclick="simulateReply()">↩️ Simulate customer reply: “Confirmed, thanks!”</button>
-          <button class="tab" onclick="markPreparing()">👨‍🍳 Business: Mark preparing</button>
+          <button class="tab" onclick="simulateReply()">↩️ Customer reply: “Confirmed”</button>
+          <button class="tab" onclick="advanceStatus('PREPARING')">👨‍🔧 Business: Preparing</button>
+          <button class="tab" onclick="advanceStatus('READY')">✅ Business: Ready / Out for delivery</button>
         </div>
       </div>
-
-      <div class="card">
-        <h3>3 — Invoice — for both parties</h3>
-        <p class="muted">One invoice, two identical copies with different headers. Print or save either one.</p>
-        <div class="tabs no-print">
-          <button class="tab active" id="tabCust" onclick="showCopy('cust')">👤 Customer Copy</button>
-          <button class="tab" id="tabBiz" onclick="showCopy('biz')">🏪 Business Copy</button>
-          <button class="tab" onclick="window.print()">🖨 Print / Save PDF</button>
-          <button class="tab" onclick="downloadInvoice()">⬇ Download .txt</button>
-        </div>
-        <div id="invoiceBox"></div>
-        <div class="lock no-print" style="margin-top:12px"><strong>How “sending” works in this prototype:</strong> Invoice is shown here + included as the last WhatsApp bubble. In production, the same PDF/link would be sent via WhatsApp to the customer and archived / emailed to the business.</div>
+      <div class="card"><h3>WhatsApp provider — simulated</h3>
+        <div class="lock"><strong>🔒 Keys not plugged in</strong><br/>Provider: Meta WhatsApp Business Platform (mock)<br/><span class="mono">POST /v21.0/{phone_number_id}/messages</span><br/>Template: <span class="mono">order_confirmation_v1</span> • Language: en_CA<br/>Webhook events received: <span class="mono">sent → delivered → read</span> (simulated)</div>
+        <h3 style="margin-top:16px">Message records (simulated DB)</h3><div id="msgRecords" class="mono muted"></div>
+        <div class="btnrow"><button class="btn light" onclick="go('#/processing')">← Processing</button><button class="btn green" onclick="go('#/invoice')">Continue to Invoice →</button></div>
       </div>
     </div>
   </section>
 
-  <section class="card no-print" style="margin-top:16px">
-    <h3>Recent dummy orders</h3><div id="history" class="muted">No orders yet in this session.</div>
+  <!-- PAGE 5 INVOICE -->
+  <section class="page" id="page-invoice">
+    <div class="hero"><h2>Page 5 — Invoice — For Both Parties</h2><p>One invoice, generated by the simulated API, delivered to the customer on WhatsApp and stored for the business. Switch copies below — the numbers never differ.</p></div>
+    <div class="card">
+      <div class="tabs no-print">
+        <button class="tab active" id="tabCust" onclick="showCopy('cust')">👤 Customer Copy</button>
+        <button class="tab" id="tabBiz" onclick="showCopy('biz')">🏪 Business Copy</button>
+        <button class="tab" onclick="window.print()">🖨 Print / Save PDF</button>
+        <button class="tab" onclick="downloadInvoice()">⬇ Download .txt</button>
+      </div>
+      <div id="invoiceBox"></div>
+      <div class="okbox no-print" style="margin-top:12px" id="deliveryBox"></div>
+      <div class="btnrow no-print"><button class="btn light" onclick="go('#/whatsapp')">← WhatsApp</button><button class="btn green" onclick="go('#/track')">Track Order →</button></div>
+    </div>
+  </section>
+
+  <!-- PAGE 6 TRACK -->
+  <section class="page" id="page-track">
+    <div class="hero"><h2>Page 6 — Order Tracking</h2><p>Customer-facing status, driven by the same simulated order record the business dashboard uses.</p></div>
+    <div class="grid">
+      <div class="card"><h3>Status timeline</h3><div class="timeline" id="trackTimeline"></div></div>
+      <div class="card"><h3>Order summary</h3><div id="trackSummary"></div>
+        <div class="btnrow"><button class="btn light" onclick="go('#/invoice')">← Invoice</button><button class="btn green" onclick="resetDemo()">↻ Start a new order</button></div></div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="page" id="page-dashboard">
+    <div class="hero"><h2>Business Dashboard — Simulated</h2><p>What the supply shop sees. Seeded with dummy historical orders + your new one. Click any order to open its WhatsApp thread and invoice.</p></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card" style="margin-top:16px"><h3>Orders (simulated DB table: orders)</h3><div style="overflow:auto"><table><thead><tr><th>Invoice</th><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Date</th><th></th></tr></thead><tbody id="ordersTable"></tbody></table></div></div>
+    <div class="card"><h3>Inventory (simulated DB table: inventory)</h3><div style="overflow:auto"><table><thead><tr><th>SKU</th><th>Product</th><th>Stock</th><th>Price</th></tr></thead><tbody id="invTable"></tbody></table></div>
+      <div class="btnrow"><button class="btn light" onclick="seedDB(true);renderAll();notice('Demo data reset to seed values.')">Reset demo data</button></div></div>
+  </section>
+
+  <!-- SETTINGS / ENV -->
+  <section class="page" id="page-settings">
+    <div class="hero"><h2>Environment / Keys — Where Real Keys Will Plug In</h2><p>Everything is wired to these variables. In the prototype they’re empty / masked and the provider is forced to MOCK. Plugging in real keys + switching mode to LIVE is the only change needed conceptually — the pages, API calls, and webhooks stay the same.</p></div>
+    <div class="grid">
+      <div class="card"><h3>Configuration (simulated .env)</h3>
+        <label>Environment</label><select id="envSel"><option value="sandbox">sandbox — simulated (current)</option><option value="production" disabled>production — locked until keys are added</option></select>
+        <label>WhatsApp Access Token — WHATSAPP_ACCESS_TOKEN</label><input class="mono" placeholder="EAA… (paste in production — disabled here)" disabled value="••••••••••••••••••••  (not set)"/>
+        <label>Phone Number ID — WHATSAPP_PHONE_NUMBER_ID</label><input class="mono" placeholder="e.g. 1234567890" disabled value="(not set) — mock uses 6475550149"/>
+        <label>WhatsApp Business Account ID — WABA_ID</label><input class="mono" placeholder="e.g. 9876543210" disabled value="(not set)"/>
+        <label>Webhook Verify Token — WEBHOOK_VERIFY_TOKEN</label><input class="mono" disabled value="•••••••• (not set)"/>
+        <label>App Secret — META_APP_SECRET</label><input class="mono" disabled value="•••••••• (not set)"/>
+        <div class="lock" style="margin-top:14px"><strong>Mode is locked to MOCK.</strong> The “Go Live” switch stays disabled until all keys above are present and the webhook is verified — exactly the gate we’ll implement in production.</div>
+        <div class="btnrow"><button class="btn" disabled>Go Live 🔒</button><button class="btn light" onclick="notice('Saved to simulated config only — nothing leaves your browser.')">Save (simulated)</button></div>
+      </div>
+      <div>
+        <div class="card"><h3>Endpoints this prototype simulates</h3><pre>POST   /api/v1/orders
+POST   /api/v1/orders/:id/reserve-inventory
+POST   /graph/v21.0/{phone_id}/messages   (WhatsApp)
+POST   /webhooks/whatsapp                 (delivered/read)
+POST   /api/v1/invoices
+GET    /api/v1/orders/:id
+PATCH  /api/v1/orders/:id/status</pre></div>
+        <div class="card"><h3>Data flow</h3><p class="muted" style="font-size:14px;line-height:1.9">Shop page → Checkout page → <b>API (simulated)</b> → Inventory DB → <b>WhatsApp provider (mock)</b> → Customer phone → Webhook back → Invoice service → <b>Customer copy + Business copy</b> → Dashboard / Tracking</p></div>
+      </div>
+    </div>
   </section>
 </main>
-<footer class="wrap">OrderFlow Prototype • Dummy data only • HST 13% (Ontario demo) • Built for GitHub Pages — no backend, no real WhatsApp, no real payments.</footer>
+<footer class="wrap">OrderFlow v2 • Simulated live environment • Dummy / hard-coded data only • No real WhatsApp, payments, or keys • HST 13% Ontario demo</footer>
 
 <script>
+// ---------- Catalogue + Inventory seed ----------
 const PRODUCTS=[
- {id:'p1',emoji:'🎨',name:'2K Basecoat Paint — Jet Black, 1 Gal',desc:'SKU PB-BLK-1G • OEM colour-match, demo',price:189.99},
- {id:'p2',emoji:'✨',name:'2K Clear Coat Kit 4:1 (5L)',desc:'SKU CC-2K-5L • High gloss, fast cure',price:124.50},
- {id:'p3',emoji:'🔫',name:'HVLP Spray Gun 1.3mm',desc:'SKU SG-HVLP-13 • Stainless needle, 600ml cup',price:179.00},
- {id:'p4',emoji:'🌀',name:'Dual-Action Orbital Sander 6-inch',desc:'SKU DS-DA6 • 5mm orbit, variable speed',price:139.99},
- {id:'p5',emoji:'📄',name:'Sandpaper Assortment 80–2000 Grit (50pk)',desc:'SKU SP-MIX-50 • Hook & loop discs',price:24.99},
- {id:'p6',emoji:'🛠️',name:'Body Filler + Hardener, 3L',desc:'SKU BF-PRO-3L • Lightweight, easy sand',price:42.75},
- {id:'p7',emoji:'🥫',name:'High-Build Primer Surfacer — Grey, 1 Gal',desc:'SKU PR-HB-GRY • Fill & seal in one',price:68.99},
- {id:'p8',emoji:'🎭',name:'Masking Kit — Tape, Paper & Sheeting',desc:'SKU MK-STD-01 • 18mm/36mm tape + roll',price:19.95},
+ {id:'p1',sku:'PB-BLK-1G',emoji:'🎨',name:'2K Basecoat Paint — Jet Black, 1 Gal',desc:'OEM colour-match, demo',price:189.99,stock:24},
+ {id:'p2',sku:'CC-2K-5L',emoji:'✨',name:'2K Clear Coat Kit 4:1 (5L)',desc:'High gloss, fast cure',price:124.50,stock:18},
+ {id:'p3',sku:'SG-HVLP-13',emoji:'🔫',name:'HVLP Spray Gun 1.3mm',desc:'Stainless needle, 600ml cup',price:179.00,stock:9},
+ {id:'p4',sku:'DS-DA6',emoji:'🌀',name:'Dual-Action Orbital Sander 6-inch',desc:'5mm orbit, variable speed',price:139.99,stock:14},
+ {id:'p5',sku:'SP-MIX-50',emoji:'📄',name:'Sandpaper Assortment 80–2000 Grit (50pk)',desc:'Hook & loop discs',price:24.99,stock:120},
+ {id:'p6',sku:'BF-PRO-3L',emoji:'🛠️',name:'Body Filler + Hardener, 3L',desc:'Lightweight, easy sand',price:42.75,stock:36},
+ {id:'p7',sku:'PR-HB-GRY',emoji:'🥫',name:'High-Build Primer Surfacer — Grey, 1 Gal',desc:'Fill & seal in one',price:68.99,stock:21},
+ {id:'p8',sku:'MK-STD-01',emoji:'🎭',name:'Masking Kit — Tape, Paper & Sheeting',desc:'18mm/36mm tape + roll',price:19.95,stock:64},
 ];
-let cart={p3:1,p5:2,p1:1}; // pre-loaded demo cart: spray gun, sandpaper, paint
-let currentOrder=null, copy='cust';
+const money=n=>'$'+Number(n).toFixed(2);
+const nowStr=()=>new Date().toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'});
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
 
-const money=n=>'$'+n.toFixed(2);
+// ---------- Simulated DB (localStorage) ----------
+const DB_KEY='orderflow_v2_db';
+function seedDB(force){
+  let db=null; try{db=JSON.parse(localStorage.getItem(DB_KEY))}catch(e){}
+  if(db && !force) return db;
+  db={ inventory:Object.fromEntries(PRODUCTS.map(p=>[p.id,p.stock])), orders:[], messages:[], invoices:[], apiLogs:[], seq:1044 };
+  const seedOrders=[
+    {orderId:'ORD-2026-1031',invoiceId:'INV-2026-1031',name:'Sara Lee — Prestige Auto Refinish',phone:'+1 905-555-0113',addr:'900 Warden Ave, Scarborough, ON',fulfil:'Pickup',pay:'Account — Net 30 (demo)',notes:'',po:'PA-221',date:'Oct 28, 2026, 10:14 a.m.',items:[{id:'p2',qty:2},{id:'p5',qty:4}],status:'READY',history:[['PLACED','Oct 28, 10:14 a.m.'],['CONFIRMED','Oct 28, 10:16 a.m.'],['READY','Oct 28, 1:40 p.m.']]},
+    {orderId:'ORD-2026-1038',invoiceId:'INV-2026-1038',name:'Omar Haddad — Eastside Collision',phone:'+1 416-555-0160',addr:'3100 Danforth Ave, Toronto, ON',fulfil:'Delivery',pay:'E-transfer (demo)',notes:'',po:'',date:'Oct 29, 2026, 9:02 a.m.',items:[{id:'p6',qty:3},{id:'p8',qty:2}],status:'DELIVERED',history:[['PLACED','Oct 29, 9:02 a.m.'],['CONFIRMED','Oct 29, 9:05 a.m.'],['DELIVERED','Oct 29, 12:20 p.m.']]},
+  ];
+  for(const s of seedOrders){ const full=hydrate(s); db.orders.push(full); db.invoices.push({invoiceId:s.invoiceId,orderId:s.orderId,total:full.total,date:s.date}); }
+  saveDB(db); return db;
+}
+function hydrate(o){
+  const items=o.items.map(i=>{const p=PRODUCTS.find(x=>x.id===i.id);return {...p,qty:i.qty}});
+  const sub=items.reduce((a,i)=>a+i.price*i.qty,0); const delivery=o.fulfil==='Delivery'?24.99:0; const hst=(sub+delivery)*0.13;
+  return {...o,items,sub,delivery,hst,total:sub+delivery+hst};
+}
+function getDB(){ return seedDB(false) }
+function saveDB(db){ try{localStorage.setItem(DB_KEY,JSON.stringify(db))}catch(e){} }
+function logAPI(method,path,status,ms,note){ const db=getDB(); db.apiLogs.unshift({at:nowStr(),method,path,status,ms,note}); db.apiLogs=db.apiLogs.slice(0,30); saveDB(db); renderLog(); }
+
+// ---------- Cart ----------
+let cart={}; try{cart=JSON.parse(localStorage.getItem('orderflow_v2_cart')||'{"p3":1,"p5":2,"p1":1}')}catch(e){cart={p3:1,p5:2,p1:1}}
+function saveCart(){ try{localStorage.setItem('orderflow_v2_cart',JSON.stringify(cart))}catch(e){} }
+function add(id){cart[id]=(cart[id]||0)+1;saveCart();renderCart()}
+function chg(id,d){cart[id]=(cart[id]||0)+d; if(cart[id]<=0) delete cart[id]; saveCart();renderCart()}
+function calc(){ let sub=0; for(const [id,q] of Object.entries(cart)){const p=PRODUCTS.find(x=>x.id===id); if(p) sub+=p.price*q} const fulfil=document.getElementById('fulfil')?.value||'Delivery'; const delivery=fulfil==='Delivery'?24.99:0; const hst=(sub+delivery)*0.13; return{sub,delivery,hst,total:sub+delivery+hst} }
+
+// ---------- Current order ----------
+function currentOrder(){ const db=getDB(); const id=localStorage.getItem('orderflow_v2_current'); return db.orders.find(o=>o.orderId===id) || db.orders[0] || null }
+function setCurrent(id){ localStorage.setItem('orderflow_v2_current',id) }
+
+// ---------- Rendering ----------
 function renderProducts(){
-  document.getElementById('products').innerHTML=PRODUCTS.map(p=>`
-   <div class="prod"><div class="emoji">${p.emoji}</div><div style="flex:1">
-    <h4>${p.name}</h4><p>${p.desc}</p><div style="display:flex;justify-content:space-between;align-items:center"><span class="price">${money(p.price)} CAD</span><button class="add" onclick="add('${p.id}')">+ Add</button></div>
-   </div></div>`).join('');
+  const db=getDB();
+  document.getElementById('products').innerHTML=PRODUCTS.map(p=>{const st=db.inventory[p.id]??p.stock; const cls=st===0?'out':(st<=5?'low':''); const label=st===0?'Out of stock (simulated)':(st<=5?`Only ${st} left`:`In stock: ${st}`); return `
+   <div class="prod"><div class="emoji">${p.emoji}</div><div style="flex:1"><h4>${p.name}</h4><p>${p.desc}<br/><span class="mono muted">${p.sku}</span></p>
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span class="price">${money(p.price)}</span><span class="stock ${cls}">${label}</span></div>
+   <button class="add" ${st===0?'disabled':''} onclick="add('${p.id}')">+ Add to cart</button></div></div>`}).join('');
+  document.getElementById('dbHint1').textContent='tables: products(8) • inventory(8) • orders('+db.orders.length+')';
 }
-function add(id){cart[id]=(cart[id]||0)+1;renderCart()}
-function chg(id,d){cart[id]=(cart[id]||0)+d; if(cart[id]<=0) delete cart[id]; renderCart()}
-function calc(){
-  let sub=0; for(const [id,q] of Object.entries(cart)){const p=PRODUCTS.find(x=>x.id===id); sub+=p.price*q}
-  const delivery=document.getElementById('fulfil')?.value==='Delivery'?4.99:0;
-  const hst=(sub+delivery)*0.13; return{sub,delivery,hst,total:sub+delivery+hst}
-}
-function renderCart(){
-  const box=document.getElementById('cart');
-  if(!Object.keys(cart).length){box.innerHTML='<p class="muted">Cart is empty — add some supplies.</p>'}
-  else box.innerHTML=Object.entries(cart).map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);return `<div class="cartline"><div><b>${p.name}</b><div class="muted">${money(p.price)} each</div></div><div class="qty"><button onclick="chg('${id}',-1)">−</button> <b>${q}</b> <button onclick="chg('${id}',1)">+</button></div><b>${money(p.price*q)}</b></div>`}).join('');
-  const t=calc(); document.getElementById('totals').innerHTML=`<div><span>Subtotal</span><span>${money(t.sub)}</span></div><div><span>Delivery</span><span>${t.delivery?money(t.delivery):'Free / Pickup'}</span></div><div><span>HST (13%)</span><span>${money(t.hst)}</span></div><div class="grand"><span>Total CAD</span><span>${money(t.total)}</span></div>`;
-  document.getElementById('placeBtn').disabled=!Object.keys(cart).length;
-}
-document.getElementById('fulfil').addEventListener('change',renderCart);
+function cartHTML(){ if(!Object.keys(cart).length) return '<p class="muted">Cart is empty — add some supplies on Page 1.</p>';
+  return Object.entries(cart).map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id); if(!p) return ''; return `<div class="cartline"><div><b>${p.name}</b><div class="muted">${money(p.price)} • ${p.sku}</div></div><div class="qty"><button onclick="chg('${id}',-1)">−</button> <b>${q}</b> <button onclick="chg('${id}',1)">+</button></div><b>${money(p.price*q)}</b></div>`}).join('') }
+function totalsHTML(){ const t=calc(); return `<div><span>Subtotal</span><span>${money(t.sub)}</span></div><div><span>Delivery</span><span>${t.delivery?money(t.delivery):'Pickup — $0.00'}</span></div><div><span>HST (13%)</span><span>${money(t.hst)}</span></div><div class="grand"><span>Total CAD</span><span>${money(t.total)}</span></div>` }
+function renderCart(){ for(const id of ['cartShop','cartCheckout']){const el=document.getElementById(id); if(el) el.innerHTML=cartHTML()} for(const id of ['totalsShop','totalsCheckout']){const el=document.getElementById(id); if(el) el.innerHTML=totalsHTML()} const pb=document.getElementById('placeBtn'); if(pb) pb.disabled=!Object.keys(cart).length; renderProducts(); }
+function renderLog(){ const el=document.getElementById('apiLog'); if(!el) return; const db=getDB(); el.innerHTML=db.apiLogs.length?db.apiLogs.map(l=>`<div class="logline"><span class="pill ${l.method==='POST'?'post':l.method==='WEBHOOK'?'webhook':'get'}">${l.method}</span> ${l.path} → <b>${l.status}</b> • ${l.ms}ms<br/><span style="color:#9ca3af">${l.at} — ${l.note||''}</span></div>`).join(''):'<p class="muted">No API calls yet. Place an order on Page 2.</p>' }
+function orderText(o){ return o.items.map(i=>`• ${i.qty} × ${i.name} — ${money(i.price*i.qty)}`).join('\n') }
 
-function setStep(n){[1,2,3].forEach(i=>document.getElementById('s'+i).classList.toggle('active',i===n))}
-function done(key){document.querySelector(`[data-tl="${key}"]`)?.classList.add('done')}
+function renderWhatsApp(){
+  const o=currentOrder(); const box=document.getElementById('waBody'); if(!o||!box) return;
+  const db=getDB(); const msgs=db.messages.filter(m=>m.orderId===o.orderId);
+  box.innerHTML=`<div class="bubble sys">🔒 Mock WhatsApp — no message was actually sent. Order ${o.orderId} • Status: ${o.status}</div>`+
+   (msgs.length?msgs.map(m=>`<div class="bubble ${m.dir}">${m.text}<small>${m.at} ${m.dir==='out'?'✓✓':''}</small></div>`).join(''):`<div class="bubble in">No messages yet — run Page 3 processing first.</div>`);
+  const rec=document.getElementById('msgRecords'); if(rec) rec.innerHTML=msgs.length?msgs.map(m=>`<div style="padding:6px 0;border-bottom:1px dashed var(--line)">${m.id} • ${m.dir==='out'?'customer → business':'business → customer'} • ${m.status} • template: ${m.template||'free-form'}</div>`).join(''):'No message records for this order yet.';
+}
+let copy='cust';
+function showCopy(c){ copy=c; document.getElementById('tabCust')?.classList.toggle('active',c==='cust'); document.getElementById('tabBiz')?.classList.toggle('active',c==='biz'); renderInvoice(); }
+function renderInvoice(){
+  const o=currentOrder(); const box=document.getElementById('invoiceBox'); if(!box) return;
+  if(!o){ box.innerHTML='<p class="muted">No order yet — start on Page 1.</p>'; return }
+  const isCust=copy==='cust';
+  box.innerHTML=`<div class="invoice"><div class="copy">${isCust?'CUSTOMER COPY':'BUSINESS COPY'}</div>
+   <div class="inv-head"><div><div style="font-weight:900;font-size:18px">Toronto Auto Body Supply — Demo Store</div><div class="muted">1200 Markham Rd, Scarborough, ON (demo)<br/>Business WhatsApp: +1 (647) 555-0149 (mock)<br/>GST/HST №: 123456789 RT0001 (dummy)</div></div>
+   <div style="text-align:right"><div style="font-size:22px;font-weight:900">INVOICE</div><div>${o.invoiceId}</div><div class="muted">${o.date}</div><div class="muted">Order: ${o.orderId}${o.po?'<br/>PO: '+o.po:''}</div></div></div>
+   <div class="row" style="margin-bottom:8px"><div><b>Billed to (Customer)</b><br/>${o.name}<br/>${o.phone}<br/>${o.addr}</div><div><b>Issued by (Business)</b><br/>Toronto Auto Body Supply<br/>${o.fulfil} • ${o.pay}<br/><span class="muted">Notes: ${o.notes||'—'}</span></div></div>
+   <table><thead><tr><th>Item / SKU</th><th>Qty</th><th>Unit</th><th style="text-align:right">Amount</th></tr></thead><tbody>${o.items.map(i=>`<tr><td>${i.name}<br/><span class="mono muted">${i.sku}</span></td><td>${i.qty}</td><td>${money(i.price)}</td><td style="text-align:right">${money(i.price*i.qty)}</td></tr>`).join('')}</tbody></table>
+   <div class="totals"><div><span>Subtotal</span><span>${money(o.sub)}</span></div><div><span>Delivery</span><span>${money(o.delivery)}</span></div><div><span>HST (13%)</span><span>${money(o.hst)}</span></div><div class="grand"><span>Total due (CAD)</span><span>${money(o.total)}</span></div></div>
+   <p class="muted" style="margin-top:14px">${isCust?'Customer copy — thank you for your order.':'Business copy — for shop records / accounting.'} Status: <b>${o.status}</b> • Payment: ${o.pay} (demo)</p></div>`;
+  const d=document.getElementById('deliveryBox'); if(d) d.innerHTML=`<strong>Delivery receipts (simulated):</strong> ✅ WhatsApp to customer ${o.phone} — delivered &amp; read (mock webhook) &nbsp;•&nbsp; ✅ Filed to business dashboard — Invoice ${o.invoiceId} &nbsp;•&nbsp; ⏳ Email copy — queued in sandbox (not sent)`;
+}
+function renderTrack(){
+  const o=currentOrder(); if(!o) return;
+  const steps=['PLACED','WHATSAPP_SENT','CONFIRMED','PREPARING','READY','DELIVERED','INVOICED'];
+  const hist=o.history||[]; const doneSet=new Set(hist.map(h=>h[0]));
+  // INVOICED is treated done once invoice exists
+  if(getDB().invoices.some(i=>i.orderId===o.orderId)) doneSet.add('INVOICED');
+  document.getElementById('trackTimeline').innerHTML=steps.map((s,i)=>{const h=hist.find(x=>x[0]===s); const done=doneSet.has(s); return `<div class="tl ${done?'done':''}"><div class="dot">${done?'✓':i+1}</div><div><b>${s.replaceAll('_',' ')}</b><div class="muted">${h?h[1]:(done?'Completed':'Pending')}</div></div></div>`}).join('');
+  document.getElementById('trackSummary').innerHTML=`<div class="cartline"><span>Order</span><b>${o.orderId}</b></div><div class="cartline"><span>Invoice</span><b>${o.invoiceId}</b></div><div class="cartline"><span>Customer</span><b>${o.name}</b></div><div class="cartline"><span>${o.fulfil}</span><b>${o.addr}</b></div><pre style="margin-top:12px">${orderText(o)}\n\nTotal: ${money(o.total)} CAD</pre>`;
+}
+function renderDashboard(){
+  const db=getDB();
+  const revenue=db.orders.reduce((a,o)=>a+o.total,0);
+  document.getElementById('kpis').innerHTML=`<div class="kpi"><span class="muted">Orders (simulated)</span><b>${db.orders.length}</b></div><div class="kpi"><span class="muted">Revenue (demo)</span><b>${money(revenue)}</b></div><div class="kpi"><span class="muted">Invoices issued</span><b>${db.invoices.length}</b></div><div class="kpi"><span class="muted">WhatsApp messages</span><b>${db.messages.length}</b></div>`;
+  document.getElementById('ordersTable').innerHTML=db.orders.map(o=>`<tr><td class="mono">${o.invoiceId}</td><td class="mono">${o.orderId}</td><td>${o.name}</td><td><span class="pill">${o.status}</span></td><td><b>${money(o.total)}</b></td><td>${o.date}</td><td><button class="tab" onclick="openOrder('${o.orderId}')">Open →</button></td></tr>`).join('');
+  document.getElementById('invTable').innerHTML=PRODUCTS.map(p=>`<tr><td class="mono">${p.sku}</td><td>${p.name}</td><td><b>${db.inventory[p.id]}</b></td><td>${money(p.price)}</td></tr>`).join('');
+}
+function openOrder(id){ setCurrent(id); renderAll(); go('#/whatsapp'); }
+function renderAll(){ renderCart(); renderLog(); renderWhatsApp(); renderInvoice(); renderTrack(); renderDashboard(); }
+
+// ---------- Flow actions ----------
+function go(hash){ if(location.hash===hash){ route(); } else location.hash=hash; window.scrollTo({top:0,behavior:'smooth'}); }
+function notice(msg){ const n=document.getElementById('notice'); n.innerHTML=msg?`<div class="okbox" style="margin:12px 0">${msg}</div>`:''; if(msg) setTimeout(()=>{n.innerHTML=''},5000); }
 
 function placeOrder(){
-  const t=calc(); const now=new Date();
-  const rand=Math.floor(1000+Math.random()*9000);
-  currentOrder={
-    orderId:'ORD-2026-'+rand, invoiceId:'INV-2026-'+rand,
-    date:now.toLocaleString('en-CA',{dateStyle:'medium',timeStyle:'short'}),
-    name:document.getElementById('custName').value||'Demo Customer',
-    phone:document.getElementById('custPhone').value||'+1 647-555-0000',
-    addr:document.getElementById('custAddr').value, fulfil:document.getElementById('fulfil').value,
-    pay:document.getElementById('pay').value, notes:document.getElementById('notes').value,
-    items:Object.entries(cart).map(([id,q])=>({...PRODUCTS.find(x=>x.id===id),qty:q})), ...t
-  };
-  try{const h=JSON.parse(localStorage.getItem('orderflow_history')||'[]');h.unshift(currentOrder);localStorage.setItem('orderflow_history',JSON.stringify(h.slice(0,5)))}catch(e){}
-  setStep(2); done('received');
-  document.getElementById('result').classList.remove('hidden');
-  renderWhatsApp(); renderInvoice(); renderHistory();
-  setTimeout(()=>{done('whatsapp'); setStep(3)},600);
-  setTimeout(()=>{done('invoice')},1100);
-  document.getElementById('result').scrollIntoView({behavior:'smooth'});
+  if(!Object.keys(cart).length) return;
+  const db=getDB(); db.seq+=1; const n=db.seq;
+  const fulfil=document.getElementById('fulfil').value;
+  const raw={ orderId:'ORD-2026-'+n, invoiceId:'INV-2026-'+n, name:document.getElementById('custName').value||'Demo Customer', phone:document.getElementById('custPhone').value||'+1 416-555-0000', addr:document.getElementById('custAddr').value, fulfil, pay:document.getElementById('pay').value, notes:document.getElementById('notes').value, po:document.getElementById('poNum').value, date:nowStr(), items:Object.entries(cart).map(([id,qty])=>({id,qty})), status:'PLACED', history:[['PLACED',nowStr()]] };
+  const o=hydrate(raw); db.orders.unshift(o); saveDB(db); setCurrent(o.orderId);
+  // customer WhatsApp message is the order itself
+  db.messages.push({id:'wamid.mock.'+n+'.1',orderId:o.orderId,dir:'out',status:'sent',template:null,at:nowStr(),text:`Hi, I'd like to place an order:\n\n${orderText(o)}\n\nName: ${o.name}\n${o.fulfil}: ${o.addr}\nPO: ${o.po||'—'}\nPayment: ${o.pay}`});
+  saveDB(db);
+  cart={}; saveCart(); renderAll();
+  go('#/processing');
+  setTimeout(()=>runProcessing(false),350);
 }
-function orderText(o){return o.items.map(i=>`• ${i.qty} × ${i.name} — ${money(i.price*i.qty)}`).join('\n')}
-function renderWhatsApp(){
-  const o=currentOrder;
-  document.getElementById('waBody').innerHTML=`
-   <div class="bubble sys">🔒 This is a mocked WhatsApp Business conversation — no message was actually sent.</div>
-   <div class="bubble out">Hi, I'd like to place an order:\n\n${orderText(o)}\n\nName: ${o.name}\n${o.fulfil}: ${o.addr}\nPayment: ${o.pay}<small>${o.date} ✓✓</small></div>
-   <div class="bubble in"><b>Toronto Auto Body Supply</b>\nThanks ${o.name.split(' ')[0]}! ✅ Received order <b>${o.orderId}</b>.\n\nTotal: <b>${money(o.total)} CAD</b> (incl. HST)\nStatus: Confirmed — preparing now.\n\nYour invoice ${o.invoiceId} is below 👇<small>Business WhatsApp (mock)</small></div>
-   <div class="bubble in">🧾 <b>Invoice ${o.invoiceId}</b>\n${orderText(o)}\nSubtotal: ${money(o.sub)}\nDelivery: ${money(o.delivery)}\nHST 13%: ${money(o.hst)}\n<b>Total: ${money(o.total)} CAD</b>\n\nCustomer copy + Business copy generated.<small>Invoice sent to both parties (mock)</small></div>
-  `;
-}
-function simulateReply(){document.getElementById('waBody').insertAdjacentHTML('beforeend',`<div class="bubble out">Confirmed, thanks! 👍<small>Customer reply (simulated)</small></div>`)}
-function markPreparing(){document.getElementById('waBody').insertAdjacentHTML('beforeend',`<div class="bubble in">👨‍🍳 Update: Your order ${currentOrder.orderId} is now <b>Preparing</b>. We'll message you when it's on its way.<small>Business WhatsApp (mock)</small></div>`)}
 
-function showCopy(c){copy=c;document.getElementById('tabCust').classList.toggle('active',c==='cust');document.getElementById('tabBiz').classList.toggle('active',c==='biz');renderInvoice()}
-function renderInvoice(){
-  if(!currentOrder) return; const o=currentOrder; const isCust=copy==='cust';
-  document.getElementById('invoiceBox').innerHTML=`
-  <div class="invoice"><div class="copy">${isCust?'CUSTOMER COPY':'BUSINESS COPY'}</div>
-   <div class="inv-head"><div><div style="font-weight:900;font-size:18px">Toronto Auto Body Supply — Demo Store</div><div class="muted">1200 Markham Rd, Scarborough, ON M1H 0A1 (demo)<br/>Business WhatsApp: +1 (647) 555-0149 (mock)<br/>GST/HST №: 123456789 RT0001 (dummy)</div></div>
-   <div style="text-align:right"><div style="font-size:22px;font-weight:900">INVOICE</div><div>${o.invoiceId}</div><div class="muted">${o.date}</div><div class="muted">Order: ${o.orderId}</div></div></div>
-   <div class="row" style="margin-bottom:8px"><div><b>Billed to (Customer)</b><br/>${o.name}<br/>${o.phone}<br/>${o.addr}</div><div><b>Issued by (Business)</b><br/>Toronto Auto Body Supply — Demo Store<br/>${o.fulfil} • ${o.pay}<br/><span class="muted">Notes: ${o.notes||'—'}</span></div></div>
-   <table><thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th style="text-align:right">Amount</th></tr></thead><tbody>
-   ${o.items.map(i=>`<tr><td>${i.name}</td><td>${i.qty}</td><td>${money(i.price)}</td><td style="text-align:right">${money(i.price*i.qty)}</td></tr>`).join('')}
-   </tbody></table>
-   <div class="totals"><div><span>Subtotal</span><span>${money(o.sub)}</span></div><div><span>Delivery</span><span>${money(o.delivery)}</span></div><div><span>HST (13%)</span><span>${money(o.hst)}</span></div><div class="grand"><span>Total due (CAD)</span><span>${money(o.total)}</span></div></div>
-   <p class="muted" style="margin-top:14px">${isCust?'Thank you for your order! This copy is for the customer.':'Internal copy — for business records / accounting.'} Status: <b>PAID / PAY ON DELIVERY (demo)</b> • Sent via WhatsApp (mock) to both parties on ${o.date}.</p>
-  </div>`;
+async function runProcessing(replay){
+  const o=currentOrder(); if(!o){ notice('No order to process — place one on Page 2 first.'); return }
+  const db=getDB(); if(db._processed===o.orderId && !replay){ // already done, just show completed pipeline
+    drawPipeline(o,true); document.getElementById('toWhats').disabled=false; return;
+  }
+  const steps=[
+    ['PLACED','POST /api/v1/orders',201,142,'Order created in simulated DB'],
+    ['INVENTORY','POST /api/v1/orders/'+o.orderId+'/reserve-inventory',200,88,'Stock reserved & decremented'],
+    ['WHATSAPP_SENT','POST /graph/v21.0/{phone_id}/messages',200,231,'Template order_confirmation_v1 sent (mock)'],
+    ['DELIVERED','WEBHOOK /webhooks/whatsapp',200,64,'delivered → read (simulated webhook)'],
+    ['INVOICED','POST /api/v1/invoices',201,119,'Invoice '+o.invoiceId+' generated for both parties'],
+    ['CONFIRMED','PATCH /api/v1/orders/'+o.orderId+'/status',200,57,'Status → CONFIRMED'],
+  ];
+  drawPipeline(o,false);
+  for(let i=0;i<steps.length;i++){
+    const [key,path,status,ms,note]=steps[i];
+    markPipeline(i,'active');
+    document.getElementById('payloadBox').textContent=JSON.stringify({request:{method:path.split(' ')[0],path:path.split(' ')[1],env:'sandbox',order_id:o.orderId},simulating:true},null,2);
+    await delay(650);
+    // apply effects once
+    if(!replay || key!=='INVENTORY'){
+      if(key==='INVENTORY'){ const d=getDB(); for(const it of o.items){ d.inventory[it.id]=Math.max(0,(d.inventory[it.id]||0)-it.qty) } saveDB(d); }
+      if(key==='WHATSAPP_SENT'){ const d=getDB(); if(!d.messages.some(m=>m.orderId===o.orderId && m.template==='order_confirmation_v1')){ d.messages.push({id:'wamid.mock.'+o.orderId+'.2',orderId:o.orderId,dir:'in',status:'delivered',template:'order_confirmation_v1',at:nowStr(),text:`Toronto Auto Body Supply\nThanks ${o.name.split(' ')[0]}! ✅ Received order ${o.orderId}.\n\nTotal: ${money(o.total)} CAD (incl. HST)\nStatus: Confirmed — preparing now.\n\nYour invoice ${o.invoiceId} is on the next page 👇`}); d.messages.push({id:'wamid.mock.'+o.orderId+'.3',orderId:o.orderId,dir:'in',status:'delivered',template:'invoice_v1',at:nowStr(),text:`🧾 Invoice ${o.invoiceId}\n${orderText(o)}\nSubtotal: ${money(o.sub)}\nDelivery: ${money(o.delivery)}\nHST 13%: ${money(o.hst)}\nTotal: ${money(o.total)} CAD\n\nCustomer copy + Business copy generated.`}); } saveDB(d); }
+      if(key==='INVOICED'){ const d=getDB(); if(!d.invoices.some(x=>x.orderId===o.orderId)) d.invoices.push({invoiceId:o.invoiceId,orderId:o.orderId,total:o.total,date:o.date}); saveDB(d); }
+    }
+    logAPI(path.startsWith('WEBHOOK')?'WEBHOOK':path.split(' ')[0], path, status, ms, note);
+    document.getElementById('payloadBox').textContent=JSON.stringify({response:{status,latency_ms:ms,order_id:o.orderId,invoice_id:o.invoiceId,step:key,result:note,provider:'mock',env:'sandbox'}},null,2);
+    markPipeline(i,'done');
+  }
+  // final status + history
+  const d=getDB(); const cur=d.orders.find(x=>x.orderId===o.orderId); if(cur){ cur.status='CONFIRMED'; for(const s of ['WHATSAPP_SENT','CONFIRMED','INVOICED']) if(!cur.history.some(h=>h[0]===s)) cur.history.push([s,nowStr()]); } d._processed=o.orderId; saveDB(d);
+  document.getElementById('toWhats').disabled=false; renderAll(); drawPipeline(currentOrder(),true);
 }
-function downloadInvoice(){
-  if(!currentOrder) return; const o=currentOrder;
-  const txt=`INVOICE ${o.invoiceId} — ${copy==='cust'?'CUSTOMER COPY':'BUSINESS COPY'}\nToronto Auto Body Supply — Demo Store (dummy)\nDate: ${o.date}  Order: ${o.orderId}\nCustomer: ${o.name} ${o.phone}\nAddress: ${o.addr}\n\n${orderText(o)}\nSubtotal: ${money(o.sub)}\nDelivery: ${money(o.delivery)}\nHST 13%: ${money(o.hst)}\nTOTAL CAD: ${money(o.total)}\n\nSent via Business WhatsApp (mock) to both parties.`;
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=o.invoiceId+'-'+copy+'.txt';a.click();
+function drawPipeline(o,allDone){
+  const labels=[['PLACED','Order received by API'],['INVENTORY','Inventory reserved (simulated DB)'],['WHATSAPP_SENT','WhatsApp confirmation sent (mock provider)'],['DELIVERED','Webhook: delivered / read'],['INVOICED','Invoice generated — both copies'],['CONFIRMED','Order confirmed']];
+  document.getElementById('pipeline').innerHTML=labels.map((l,i)=>`<div class="tl ${allDone?'done':''}" id="pipe-${i}"><div class="dot">${allDone?'✓':i+1}</div><div><b>${l[0].replaceAll('_',' ')}</b><div class="muted">${l[1]}${o?' • '+o.orderId:''}</div></div></div>`).join('');
 }
-function renderHistory(){
-  try{const h=JSON.parse(localStorage.getItem('orderflow_history')||'[]'); if(h.length) document.getElementById('history').innerHTML=h.map(o=>`<div class="cartline"><span><b>${o.invoiceId}</b> — ${o.name}</span><span>${o.date}</span><b>${money(o.total)}</b></div>`).join('')}catch(e){}
+function markPipeline(i,state){ const el=document.getElementById('pipe-'+i); if(!el) return; if(state==='done'){ el.classList.add('done'); el.querySelector('.dot').textContent='✓' } else { el.querySelector('.dot').textContent='…' } }
+
+function simulateReply(){ const o=currentOrder(); if(!o) return; const db=getDB(); db.messages.push({id:'wamid.mock.'+Date.now(),orderId:o.orderId,dir:'out',status:'sent',template:null,at:nowStr(),text:'Confirmed, thanks! 👍'}); saveDB(db); logAPI('WEBHOOK','/webhooks/whatsapp',200,41,'Customer replied: Confirmed'); renderWhatsApp(); }
+function advanceStatus(status){ const o=currentOrder(); if(!o) return; const db=getDB(); const cur=db.orders.find(x=>x.orderId===o.orderId); cur.status=status; if(!cur.history.some(h=>h[0]===status)) cur.history.push([status,nowStr()]); db.messages.push({id:'wamid.mock.'+Date.now(),orderId:o.orderId,dir:'in',status:'delivered',template:'status_update_v1',at:nowStr(),text: status==='PREPARING'?`👨‍🔧 Update: Order ${o.orderId} is now PREPARING. We’ll message you when it’s ready.`:`✅ Update: Order ${o.orderId} is READY / out for delivery.`}); saveDB(db); logAPI('PATCH','/api/v1/orders/'+o.orderId+'/status',200,52,'Status → '+status); renderAll(); }
+
+function downloadInvoice(){ const o=currentOrder(); if(!o) return; const txt=`INVOICE ${o.invoiceId} — ${copy==='cust'?'CUSTOMER COPY':'BUSINESS COPY'}\nToronto Auto Body Supply — Demo Store (dummy)\nDate: ${o.date}  Order: ${o.orderId}  PO: ${o.po||'—'}\nCustomer: ${o.name} ${o.phone}\nAddress: ${o.addr}\n\n${orderText(o)}\nSubtotal: ${money(o.sub)}\nDelivery: ${money(o.delivery)}\nHST 13%: ${money(o.hst)}\nTOTAL CAD: ${money(o.total)}\n\nSent via Business WhatsApp (mock) to both parties.`; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'})); a.download=o.invoiceId+'-'+copy+'.txt'; a.click(); }
+function resetDemo(){ cart={p3:1,p5:2,p1:1}; saveCart(); renderAll(); go('#/shop'); notice('New demo order started — cart reset with a spray gun, sandpaper ×2, and paint.'); }
+
+// ---------- Router (page-to-page) ----------
+const PAGES=['shop','checkout','processing','whatsapp','invoice','track','dashboard','settings'];
+function route(){
+  let h=(location.hash||'#/shop').replace('#/',''); if(!PAGES.includes(h)) h='shop';
+  // guard: processing/whatsapp/invoice/track need an order
+  if(['processing','whatsapp','invoice','track'].includes(h) && !currentOrder()){ h='shop'; notice('Place an order first — the flow starts on Page 1.'); }
+  PAGES.forEach(p=>document.getElementById('page-'+p).classList.toggle('show',p===h));
+  document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('active',a.dataset.nav===h));
+  document.querySelectorAll('[data-step]').forEach(a=>{ a.classList.toggle('active',a.dataset.step===h); });
+  if(h==='processing'){ const o=currentOrder(); drawPipeline(o, getDB()._processed===o?.orderId); document.getElementById('toWhats').disabled=getDB()._processed!==o?.orderId; if(getDB()._processed!==o?.orderId) runProcessing(false); }
+  renderAll(); window.scrollTo({top:0});
 }
-document.getElementById('placeBtn').addEventListener('click',placeOrder);
-renderProducts(); renderCart(); renderHistory();
+window.addEventListener('hashchange',route);
+document.getElementById('fulfil')?.addEventListener('change',renderCart);
+seedDB(false); renderAll(); route();
 </script>
 </body>
 </html>

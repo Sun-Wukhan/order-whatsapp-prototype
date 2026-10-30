@@ -1,30 +1,44 @@
-# OrderFlow — Auto Body Supply: WhatsApp Order + Invoice Prototype
-
-Rough prototype hosted on GitHub Pages. **Dummy data only — no backend, no real WhatsApp, no real payments.**
+# OrderFlow v2 — Auto Body Supply: Page-to-Page Prototype (Simulated Live Env)
 
 **Live:** https://sun-wukhan.github.io/order-whatsapp-prototype/
 
-Built for an **auto body supply shop** — paints, spray guns, sanders, fillers, primers and consumables. Customers are typically body shops / garages.
+Rough prototype on GitHub Pages that **simulates a real environment before real keys are plugged in**. Dummy / hard-coded data only — no backend, no real WhatsApp, no real payments, no real keys.
 
-## Flow
+## Page-to-page flow
 
-1. **Take order from customer** — catalogue with 8 dummy auto body items (2K basecoat, clear coat, HVLP spray gun 1.3mm, DA orbital sander, sandpaper, body filler, primer surfacer, masking kit), cart, checkout form pre-filled with a demo body-shop customer (Mike's Collision & Repair).
-2. **Process through Business WhatsApp (mocked / locked)** — no WhatsApp connector is connected, so the conversation is simulated in a phone UI:
-   - Customer sends order via WhatsApp bubble
-   - Business confirms with order № + total
-   - Invoice message sent in-chat
-   - Extra buttons simulate a customer reply and a "Preparing" update
-3. **Invoice for both parties** — one invoice № (`INV-2026-xxxx`) generates two identical copies:
-   - 👤 Customer Copy (for the body shop)
-   - 🏪 Business Copy (for the supply shop)
-   - Print / Save PDF, or Download `.txt`
-   - Totals include subtotal, delivery, and HST 13% (Ontario demo)
+Use the top nav / stepper — each step is its own page (hash routes, browser Back works, pages are linkable):
+
+| Page | Route | What happens |
+|---|---|---|
+| 1. Shop | `#/shop` | Catalogue of 8 auto body items (paint, clear coat, HVLP gun, DA sander, sandpaper, filler, primer, masking) with simulated stock levels |
+| 2. Checkout | `#/checkout` | Body-shop customer details, PO №, paint-code notes, order review |
+| 3. Processing | `#/processing` | **Simulated backend**: pipeline + API log + request/response JSON |
+| 4. WhatsApp | `#/whatsapp` | Mock Business WhatsApp conversation + message records |
+| 5. Invoice | `#/invoice` | One invoice №, Customer Copy + Business Copy, print/PDF, download, delivery receipts |
+| 6. Track | `#/track` | Customer order-status timeline |
+| — Dashboard | `#/dashboard` | Business view: KPIs, all orders (seeded + new), inventory table |
+| — Environment | `#/settings` | Where real keys plug in — see below |
+
+## Simulated real environment
+
+Everything production would do is simulated in-browser:
+
+- **Simulated API** — `POST /api/v1/orders`, inventory reserve, `POST /graph/v21.0/{phone_id}/messages`, `POST /webhooks/whatsapp` (delivered/read), `POST /api/v1/invoices`, `PATCH …/status` — with fake latency, 200/201 codes, and a live API log on Page 3
+- **Simulated DB** (`localStorage`) — tables: `products`, `inventory` (decrements on order), `orders`, `messages`, `invoices`, `apiLogs`; seeded with 2 historical orders
+- **Simulated WhatsApp provider** — templates `order_confirmation_v1`, `invoice_v1`, `status_update_v1`; message records with `wamid.mock.*` IDs
+- **Order state machine** — PLACED → WHATSAPP_SENT → CONFIRMED → PREPARING → READY → DELIVERED, plus INVOICED
+
+## Where the keys go (Page: Environment / Keys)
+
+`#/settings` shows the exact production variables, currently empty/masked with mode **locked to MOCK**:
+
+- `WHATSAPP_ACCESS_TOKEN`
+- `WHATSAPP_PHONE_NUMBER_ID`
+- `WABA_ID` (WhatsApp Business Account ID)
+- `WEBHOOK_VERIFY_TOKEN`
+- `META_APP_SECRET`
+
+“Go Live” stays disabled until keys are present and the webhook is verified — plugging them in is conceptually the only change: pages, API calls, and webhooks stay the same.
 
 ## Tech
-Single `index.html` — inline CSS/JS, no build step, `localStorage` for recent orders.
-
-## To make it real later
-- Connect WhatsApp Business Platform API (replace mock in `renderWhatsApp()`)
-- Add real SKU / paint colour-code catalogue and inventory
-- Add a backend / form endpoint for real orders
-- Generate real PDFs server-side and send the PDF/link via WhatsApp to customer + business
+Single `index.html`, inline CSS/JS, hash routing, no build step.
